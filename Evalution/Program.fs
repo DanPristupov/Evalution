@@ -8,6 +8,7 @@
         | Double of float
         | Integer of int
         | Operator of char
+        | None
 
     let readFormula input = 
         let length = String.length(input)
@@ -38,19 +39,21 @@
             else
                 match input.[i] with
                 | ('+' | '-' | '*' | '/' | '(' | ')') -> ((Operator input.[i]), i+1)
+                | ' ' -> (None, i+1)
                 | _ -> failwith "fail"
 
         let mutable tokens = []
         let mutable i = 0
-        while i < String.length(input) do
+        while i < length do
             let (token, nextPos) = getToken i
-            tokens <- (token::tokens)
+            if (token <> None) then
+                tokens <- (token::tokens)
             i <- nextPos
         tokens
  
     [<EntryPoint>]
     let main argv = 
-        let result = readFormula("(42+8)*2")
+        let result = readFormula("(42+8) *2")
         result |> Seq.iter ( printfn "%A")
 
         Console.ReadLine()
