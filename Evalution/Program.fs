@@ -21,17 +21,20 @@
 
         let getToken start = 
             let mutable i = start
-            let mutable buffer = ""
             if isPartOfNumeric input.[i] then
-                while i< String.length(input) && (isPartOfNumeric input.[i]) do
-                    buffer <- buffer + input.[i].ToString()
-                    i <- i+1
+                let rec getNumberSubString str index result =
+                    if index < String.length(str) && isPartOfNumeric input.[index] then
+                        getNumberSubString str (index+1) (result + input.[index].ToString())
+                    else
+                        (result, index)
+                let (substring, index) = getNumberSubString input i ""
+                i <- index
 
-                let (succ, intValue) = Int32.TryParse buffer
+                let (succ, intValue) = Int32.TryParse substring
                 if succ then
                     ((Integer intValue), i)
                 else
-                    let (succ, doubleValue) = Double.TryParse(buffer, NumberStyles.Float ||| NumberStyles.AllowThousands, CultureInfo.CurrentCulture)
+                    let (succ, doubleValue) = Double.TryParse(substring, NumberStyles.Float ||| NumberStyles.AllowThousands, CultureInfo.CurrentCulture)
                     if (succ) then
                         ((Double doubleValue), i)
                     else
