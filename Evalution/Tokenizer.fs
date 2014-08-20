@@ -14,21 +14,22 @@ type public Tokenizer() =
     let readFormula input = 
         let length = String.length(input)
 
-        let isPartOfNumeric char =
-            match char with
+        let isPartOfNumeric (symbol:char) =
+            match symbol with
             | x when x = decimalSeparator -> true
-            | x when x >= '0' && x <= '9' -> true
+            | x when Char.IsDigit(symbol) -> true
             | _ -> false
 
-        let getToken start = 
-            let char = input.[start]
+        let rec getNumberSubString str index result =
+            if index < length && isPartOfNumeric input.[index] then
+                getNumberSubString str (index+1) (result + input.[index].ToString())
+            else
+                (result, index)
 
-            if isPartOfNumeric char then
-                let rec getNumberSubString str index result =
-                    if index < String.length(str) && isPartOfNumeric input.[index] then
-                        getNumberSubString str (index+1) (result + input.[index].ToString())
-                    else
-                        (result, index)
+        let getToken start = 
+            let symbol = input.[start]
+
+            if isPartOfNumeric symbol then
                 let (substring, index) = getNumberSubString input start ""
 
                 let (succ, intValue) = Int32.TryParse substring
@@ -41,8 +42,8 @@ type public Tokenizer() =
                     else
                         failwith "fail"
             else
-                match char with
-                | ('+' | '-' | '*' | '/' | '(' | ')') -> ((Operator char), start+1)
+                match symbol with
+                | ('+' | '-' | '*' | '/' | '(' | ')') -> ((Operator symbol), start+1)
                 | ' ' -> (None, start+1)
                 | _ -> failwith "fail"
 
