@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Tokenizer.fs" />
+    <Compile Include="SyntaxTree.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
   </ItemGroup>
