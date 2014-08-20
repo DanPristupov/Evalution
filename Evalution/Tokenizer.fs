@@ -17,7 +17,7 @@ type public Tokenizer() =
         let isPartOfNumeric char =
             match char with
             | x when x = decimalSeparator -> true
-            | x when x > '0' && x < '9' -> true
+            | x when x >= '0' && x <= '9' -> true
             | _ -> false
 
         let getToken start = 
