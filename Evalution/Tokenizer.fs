@@ -8,9 +8,8 @@ type Token =
     | Operator of char
     | None
 
-module TokenizerPrivate =
+type public Tokenizer() =
     let decimalSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator.[0]
-
 
     let readFormula input = 
         let length = String.length(input)
@@ -56,6 +55,4 @@ module TokenizerPrivate =
             i <- nextPos
         List.rev(tokens)
 
-open TokenizerPrivate
-type public Tokenizer() =
     member this.Read input = readFormula input
