@@ -59,3 +59,75 @@ type TokenizerTest() =
             Integer 2;
         ]
         Assert.AreEqual(expectedResult, result)
+
+    [<TestMethod>]
+    member x.TestTokenReader5 ()=
+        let result = tokenizer.Read "(42.87+31.0"
+        
+        let expectedResult = [
+            Operator '(';
+            Double 42.87;
+            Operator '+';
+            Double 31.0;
+        ]
+        Assert.AreEqual(expectedResult, result)
+
+    [<TestMethod>]
+    member x.TestTokenReader6 ()=
+        let result = tokenizer.Read "(var+31.0"
+        
+        let expectedResult = [
+            Operator '(';
+            Integer 42;
+            Operator '+';
+            Integer 8;
+            Operator ')';
+            Operator '*';
+            Integer 2;
+        ]
+        Assert.AreEqual(expectedResult, result)
+
+    [<TestMethod>]
+    member x.TestTokenReader7 ()=
+        let result = tokenizer.Read "varb"
+        
+        let expectedResult = [
+            Operator '(';
+            Integer 42;
+            Operator '+';
+            Integer 8;
+            Operator ')';
+            Operator '*';
+            Integer 2;
+        ]
+        Assert.AreEqual(expectedResult, result)
+
+    [<TestMethod>]
+    member x.TestTokenReader8 ()=
+        let result = tokenizer.Read "varb("
+        
+        let expectedResult = [
+            Operator '(';
+            Integer 42;
+            Operator '+';
+            Integer 8;
+            Operator ')';
+            Operator '*';
+            Integer 2;
+        ]
+        Assert.AreEqual(expectedResult, result)
+
+    [<TestMethod>]
+    member x.TestTokenReader9 ()=
+        let result = tokenizer.Read "+varb("
+        
+        let expectedResult = [
+            Operator '+';
+            Integer 42;
+            Operator '+';
+            Integer 8;
+            Operator ')';
+            Operator '*';
+            Integer 2;
+        ]
+        Assert.AreEqual(expectedResult, result)
