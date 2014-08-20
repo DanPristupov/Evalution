@@ -3,6 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Evalution", "Evalution\Evalution.fsproj", "{062775DB-EA04-4645-8982-DDD02DFCFA9F}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{090B16CE-C998-44B0-B48E-5D6D4EF357C7}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\packages.config = .nuget\packages.config
+	EndProjectSection
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Evalution.Test", "Evalution.Test\Evalution.Test.fsproj", "{A04DC50D-FC2D-484C-956E-69E313F206F7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -13,6 +20,10 @@ Global
 		{062775DB-EA04-4645-8982-DDD02DFCFA9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{062775DB-EA04-4645-8982-DDD02DFCFA9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{062775DB-EA04-4645-8982-DDD02DFCFA9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A04DC50D-FC2D-484C-956E-69E313F206F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A04DC50D-FC2D-484C-956E-69E313F206F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A04DC50D-FC2D-484C-956E-69E313F206F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A04DC50D-FC2D-484C-956E-69E313F206F7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
