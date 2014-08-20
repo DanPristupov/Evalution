@@ -1,4 +1,4 @@
-﻿module Evalution
+﻿module MainModule
     open System
     open System.Globalization
 
@@ -52,8 +52,9 @@
             if (token <> None) then
                 tokens <- (token::tokens)
             i <- nextPos
-        tokens
- 
+        List.rev(tokens)
+
+
     [<EntryPoint>]
     let main argv = 
         let result = readFormula("(42+8) *2")
