@@ -59,6 +59,7 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SyntaxTreeTest.fs" />
     <Compile Include="TokenizerTest.fs" />
     <None Include="App.config" />
     <None Include="MSTest.runsettings" />
