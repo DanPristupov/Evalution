@@ -4,16 +4,20 @@
 
     [<EntryPoint>]
     let main argv = 
+        let tokenizer = new Tokenizer()
+        let tokens = tokenizer.Read("(42+8) *2")
+        tokens |> Seq.iter ( printfn "%A")
+
         let syntaxTree = new SyntaxTree()
-        let result = syntaxTree.Build [
+        let expression = syntaxTree.Build [
             Integer 2;
             Operator '+';
             Integer 3;
         ]
         
-        let tokenizer = new Tokenizer()
-        let result = tokenizer.Read("(42+8) *2")
-        result |> Seq.iter ( printfn "%A")
+
+        let evaluator = new Evaluator();
+        let result = evaluator.Evaluate(expression);
 
         Console.ReadLine()
         0 // return an integer exit code
