@@ -24,7 +24,7 @@ type public SyntaxTree() =
                 | _ -> false
 
             let getOperator (Operator token) = token
-            let convert (operation:char, stack:Stack<Expression>) =
+            let convert (operation, stack:Stack<Expression>) =
                 match operation with
                 | '+' -> Addition(stack.Pop(), stack.Pop())
                 | '*' -> Multiplication(stack.Pop(), stack.Pop())
@@ -46,16 +46,16 @@ type public SyntaxTree() =
             | Double(value) -> resultStack.Push (Const (CDouble value))
             | Integer(value) -> resultStack.Push (Const (CInteger value))
             | Operator(value) -> match value with
-                | '*' | '+' -> if tokenStack.Count = 0 then
-                                tokenStack.Push token
-                               else
-                                let operation2 = tokenStack.Peek()
-                                tokenStack.Pop()
-                                tokenStack.Push(token)
-                                //resultStack.Push bla bla
-                | '(' -> tokenStack.Push(token)
-                | ')' -> popStackTokens(tokenStack, resultStack)
-                | _ -> failwith ""
+                                    | '*' | '+' -> if tokenStack.Count = 0 then
+                                                    tokenStack.Push token
+                                                    else
+                                                    let operation2 = tokenStack.Peek()
+                                                    tokenStack.Pop()
+                                                    tokenStack.Push(token)
+                                                    //resultStack.Push bla bla
+                                    | '(' -> tokenStack.Push(token)
+                                    | ')' -> popStackTokens(tokenStack, resultStack)
+                                    | _ -> failwith ""
             | _ -> failwith ""
         //PopOperations(operatorStack, resultStack);
         popStackTokens(tokenStack, resultStack)

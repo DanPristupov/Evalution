@@ -17,7 +17,7 @@ type public Tokenizer() =
         let isPartOfNumeric (symbol:char) =
             match symbol with
             | x when x = decimalSeparator -> true
-            | x when Char.IsDigit(symbol) -> true
+            | _ when Char.IsDigit(symbol) -> true
             | _ -> false
 
         let rec getNumberSubString str index result =
