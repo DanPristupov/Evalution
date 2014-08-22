@@ -23,12 +23,16 @@ type public SyntaxTree() =
                                         | _ -> false
                 | _ -> false
 
-            let convert operation =
-                Expression.None
+            let getOperator (Operator token) = token
+            let convert (operation:char, stack:Stack<Expression>) =
+                match operation with
+                | '+' -> Addition(stack.Pop(), stack.Pop())
+                | '*' -> Multiplication(stack.Pop(), stack.Pop())
+                | _ -> failwith "blah"
 
-            while resultStack.Count > 0 && isLeftBracket(tokenStack.Peek()) do
+            while tokenStack.Count > 0 && not(isLeftBracket(tokenStack.Peek())) do
                 let operation = tokenStack.Pop()
-                resultStack.Push(convert(operation))
+                resultStack.Push( convert((getOperator operation), resultStack))
             ()
 
         let mutable resultStack = new Stack<Expression>()
@@ -55,6 +59,6 @@ type public SyntaxTree() =
             | _ -> failwith ""
         //PopOperations(operatorStack, resultStack);
         popStackTokens(tokenStack, resultStack)
-        Seq.nth 0
+        Seq.nth 0 resultStack
 
     member this.Build tokens = build tokens
