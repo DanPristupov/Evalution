@@ -53,7 +53,7 @@ type public SyntaxTree() =
                                                         let operation2 = tokenStack.Peek()
                                                         tokenStack.Pop()
                                                         tokenStack.Push(token)
-                                                        resultStack.Push(convert( (getOperator token), resultStack))
+                                                        resultStack.Push(convert( (getOperator operation2), resultStack))
                                     | _ -> failwith ""
             | Bracket(value) -> match value with
                                     | '(' -> tokenStack.Push(token)

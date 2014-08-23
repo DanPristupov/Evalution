@@ -34,3 +34,18 @@ type EvaluatorTest() =
         let evaluator = new Evaluator();
         let result = evaluator.Evaluate(expression);
         Assert.AreEqual(6.0, result)
+
+    [<TestMethod>]
+    member x.EvaluateTest3 ()=
+        let syntaxTree = new SyntaxTree()
+        let expression = syntaxTree.Build [
+            Integer 2;
+            Operator '+';
+            Integer 3;
+            Operator '*';
+            Integer 2;
+        ]
+
+        let evaluator = new Evaluator();
+        let result = evaluator.Evaluate(expression);
+        Assert.AreEqual(10.0, result)
