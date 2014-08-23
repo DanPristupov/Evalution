@@ -36,6 +36,15 @@ type public SyntaxTree() =
                 resultStack.Push( convert((getOperator operation), resultStack))
             ()
 
+        let getPriority token =
+            match token with
+            | Bracket(_) -> 100
+            | Operator(value) -> match value with
+                                 | '*' -> 11
+                                 | '+' -> 10
+            | Double(_) | Integer(_) -> 1
+            | _ -> failwith ""
+
         let mutable resultStack = new Stack<Expression>()
         let mutable tokenStack = new Stack<Token>()
 
@@ -51,16 +60,19 @@ type public SyntaxTree() =
                                                         tokenStack.Push token
                                                     else
                                                         let operation2 = tokenStack.Peek()
-                                                        tokenStack.Pop()
-                                                        tokenStack.Push(token)
-                                                        resultStack.Push(convert( (getOperator operation2), resultStack))
+                                                        if (getPriority token) > (getPriority operation2) then
+                                                            tokenStack.Push(token)
+                                                        else
+                                                            tokenStack.Pop()
+                                                            tokenStack.Push(token)
+                                                            resultStack.Push(convert( (getOperator operation2), resultStack))
                                     | _ -> failwith ""
             | Bracket(value) -> match value with
                                     | '(' -> tokenStack.Push(token)
                                     | ')' -> popStackTokens(tokenStack, resultStack)
                                     | _ -> failwith ""
             | _ -> failwith ""
-        //PopOperations(operatorStack, resultStack);
+
         popStackTokens(tokenStack, resultStack)
         Seq.nth 0 resultStack
 
