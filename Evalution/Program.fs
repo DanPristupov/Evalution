@@ -18,6 +18,6 @@
 
         let evaluator = new Evaluator();
         let result = evaluator.Evaluate(expression);
-
+        printfn "%A" result
         Console.ReadLine()
         0 // return an integer exit code

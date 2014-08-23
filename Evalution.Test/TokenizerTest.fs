@@ -24,11 +24,11 @@ type TokenizerTest() =
         let result = tokenizer.Read "(42+31)"
         
         let expectedResult = [
-            Operator '(';
+            Bracket '(';
             Integer 42;
             Operator '+';
             Integer 31;
-            Operator ')';
+            Bracket ')';
         ]
         Assert.AreEqual(expectedResult, result)
 
@@ -37,11 +37,11 @@ type TokenizerTest() =
         let result = tokenizer.Read "(42+31.0)"
         
         let expectedResult = [
-            Operator '(';
+            Bracket '(';
             Integer 42;
             Operator '+';
             Double 31.0;
-            Operator ')';
+            Bracket ')';
         ]
         Assert.AreEqual(expectedResult, result)
 
@@ -50,11 +50,11 @@ type TokenizerTest() =
         let result = tokenizer.Read "(42+ 8) *2"
         
         let expectedResult = [
-            Operator '(';
+            Bracket '(';
             Integer 42;
             Operator '+';
             Integer 8;
-            Operator ')';
+            Bracket ')';
             Operator '*';
             Integer 2;
         ]
@@ -65,7 +65,7 @@ type TokenizerTest() =
         let result = tokenizer.Read "(42.87+31.0"
         
         let expectedResult = [
-            Operator '(';
+            Bracket '(';
             Double 42.87;
             Operator '+';
             Double 31.0;
@@ -77,11 +77,11 @@ type TokenizerTest() =
         let result = tokenizer.Read "(var+31.0"
         
         let expectedResult = [
-            Operator '(';
+            Bracket '(';
             Integer 42;
             Operator '+';
             Integer 8;
-            Operator ')';
+            Bracket ')';
             Operator '*';
             Integer 2;
         ]
@@ -92,11 +92,11 @@ type TokenizerTest() =
         let result = tokenizer.Read "varb"
         
         let expectedResult = [
-            Operator '(';
+            Bracket '(';
             Integer 42;
             Operator '+';
             Integer 8;
-            Operator ')';
+            Bracket ')';
             Operator '*';
             Integer 2;
         ]
@@ -107,11 +107,11 @@ type TokenizerTest() =
         let result = tokenizer.Read "varb("
         
         let expectedResult = [
-            Operator '(';
+            Bracket '(';
             Integer 42;
             Operator '+';
             Integer 8;
-            Operator ')';
+            Bracket ')';
             Operator '*';
             Integer 2;
         ]
@@ -126,7 +126,7 @@ type TokenizerTest() =
             Integer 42;
             Operator '+';
             Integer 8;
-            Operator ')';
+            Bracket ')';
             Operator '*';
             Integer 2;
         ]

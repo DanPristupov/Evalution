@@ -13,12 +13,12 @@ type Expression =
     | None
 
 type public SyntaxTree() =
+
     let build tokens =
-        
         let popStackTokens (tokenStack:Stack<Token>, resultStack:Stack<Expression>)=
             let isLeftBracket token =
                 match token with
-                | Operator(value) -> match value with
+                | Bracket(value) -> match value with
                                         | '(' -> true
                                         | _ -> false
                 | _ -> false
@@ -53,6 +53,8 @@ type public SyntaxTree() =
                                                     tokenStack.Pop()
                                                     tokenStack.Push(token)
                                                     //resultStack.Push bla bla
+                                    | _ -> failwith ""
+            | Bracket(value) -> match value with
                                     | '(' -> tokenStack.Push(token)
                                     | ')' -> popStackTokens(tokenStack, resultStack)
                                     | _ -> failwith ""

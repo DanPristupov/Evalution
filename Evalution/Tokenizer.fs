@@ -6,6 +6,7 @@ type Token =
     | Double of float
     | Integer of int
     | Operator of char
+    | Bracket of char
     | None
 
 type public Tokenizer() =
@@ -43,7 +44,8 @@ type public Tokenizer() =
                         failwith "fail"
             else
                 match symbol with
-                | ('+' | '-' | '*' | '/' | '(' | ')') -> ((Operator symbol), start+1)
+                | ('+' | '-' | '*' | '/') -> ((Operator symbol), start+1)
+                | ('(' | ')') -> ((Bracket symbol), start+1)
                 | ' ' -> (None, start+1)
                 | _ -> failwith "fail"
 
