@@ -48,31 +48,33 @@ type public SyntaxTree() =
         let mutable resultStack = new Stack<Expression>()
         let mutable tokenStack = new Stack<Token>()
 
-        let mutable result = []
+        let rec processTokens tokens (resultStack: Stack<Expression>) (tokenStack:Stack<Token>)=
+            match tokens with
+            | token::tail ->
+                match token with
+                    | Double(value) -> resultStack.Push (Const (CDouble value))
+                    | Integer(value) -> resultStack.Push (Const (CInteger value))
+                    | Operator(value) -> match value with
+                                            | '*' | '+' -> if tokenStack.Count = 0 then
+                                                                tokenStack.Push token
+                                                            else
+                                                                let operation2 = tokenStack.Peek()
+                                                                if (getPriority token) > (getPriority operation2) then
+                                                                    tokenStack.Push(token)
+                                                                else
+                                                                    tokenStack.Pop()
+                                                                    tokenStack.Push(token)
+                                                                    resultStack.Push(convert( (getOperator operation2), resultStack))
+                                            | _ -> failwith ""
+                    | Bracket(value) -> match value with
+                                            | '(' -> tokenStack.Push(token)
+                                            | ')' -> popStackTokens(tokenStack, resultStack)
+                                            | _ -> failwith ""
+                    | _ -> failwith ""
+                processTokens tail resultStack tokenStack
+            | [] -> ()
 
-
-        for token in tokens do
-            match token with
-            | Double(value) -> resultStack.Push (Const (CDouble value))
-            | Integer(value) -> resultStack.Push (Const (CInteger value))
-            | Operator(value) -> match value with
-                                    | '*' | '+' -> if tokenStack.Count = 0 then
-                                                        tokenStack.Push token
-                                                    else
-                                                        let operation2 = tokenStack.Peek()
-                                                        if (getPriority token) > (getPriority operation2) then
-                                                            tokenStack.Push(token)
-                                                        else
-                                                            tokenStack.Pop()
-                                                            tokenStack.Push(token)
-                                                            resultStack.Push(convert( (getOperator operation2), resultStack))
-                                    | _ -> failwith ""
-            | Bracket(value) -> match value with
-                                    | '(' -> tokenStack.Push(token)
-                                    | ')' -> popStackTokens(tokenStack, resultStack)
-                                    | _ -> failwith ""
-            | _ -> failwith ""
-
+        processTokens tokens resultStack tokenStack
         popStackTokens(tokenStack, resultStack)
         Seq.nth 0 resultStack
 
