@@ -15,6 +15,13 @@ type Expression =
 type public SyntaxTree() =
 
     let build tokens =
+        let convert (operation, stack:Stack<Expression>) =
+            match operation with
+            | '+' -> Addition(stack.Pop(), stack.Pop())
+            | '*' -> Multiplication(stack.Pop(), stack.Pop())
+            | _ -> failwith "blah"
+        let getOperator (Operator token) = token
+
         let popStackTokens (tokenStack:Stack<Token>, resultStack:Stack<Expression>)=
             let isLeftBracket token =
                 match token with
@@ -23,12 +30,6 @@ type public SyntaxTree() =
                                         | _ -> false
                 | _ -> false
 
-            let getOperator (Operator token) = token
-            let convert (operation, stack:Stack<Expression>) =
-                match operation with
-                | '+' -> Addition(stack.Pop(), stack.Pop())
-                | '*' -> Multiplication(stack.Pop(), stack.Pop())
-                | _ -> failwith "blah"
 
             while tokenStack.Count > 0 && not(isLeftBracket(tokenStack.Peek())) do
                 let operation = tokenStack.Pop()
@@ -47,12 +48,12 @@ type public SyntaxTree() =
             | Integer(value) -> resultStack.Push (Const (CInteger value))
             | Operator(value) -> match value with
                                     | '*' | '+' -> if tokenStack.Count = 0 then
-                                                    tokenStack.Push token
+                                                        tokenStack.Push token
                                                     else
-                                                    let operation2 = tokenStack.Peek()
-                                                    tokenStack.Pop()
-                                                    tokenStack.Push(token)
-                                                    //resultStack.Push bla bla
+                                                        let operation2 = tokenStack.Peek()
+                                                        tokenStack.Pop()
+                                                        tokenStack.Push(token)
+                                                        resultStack.Push(convert( (getOperator token), resultStack))
                                     | _ -> failwith ""
             | Bracket(value) -> match value with
                                     | '(' -> tokenStack.Push(token)

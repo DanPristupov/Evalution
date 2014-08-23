@@ -13,6 +13,8 @@
             Integer 2;
             Operator '+';
             Integer 3;
+            Operator '+';
+            Integer 1;
         ]
         
 
