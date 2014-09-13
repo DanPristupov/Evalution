@@ -44,3 +44,12 @@ type EvaluatorTest() =
 
         let evaluator = new Evaluator();
         Assert.AreEqual(evaluator.Evaluate(expression1), evaluator.Evaluate(expression2))
+
+    [<TestMethod>]
+    member x.EvaluateTest5 ()=
+        let tokens = tokenizer.Read "(2+3)*2"
+        let expression = syntaxTree.Build tokens
+
+        let evaluator = new Evaluator();
+        let result = evaluator.Evaluate(expression);
+        Assert.AreEqual(10.0, result)

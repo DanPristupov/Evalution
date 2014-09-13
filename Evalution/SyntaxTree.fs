@@ -12,6 +12,7 @@ type Expression =
     | Multiplication of (Expression * Expression)
     | None
 
+// rename to SyntaxTreeBuilder?
 type public SyntaxTree() =
 
     let build tokens =
@@ -64,7 +65,9 @@ type public SyntaxTree() =
                                                                 else
                                                                     tokenStack.Pop()
                                                                     tokenStack.Push(token)
-                                                                    resultStack.Push(convert( (getOperator operation2), resultStack))
+                                                                    let operator = getOperator operation2
+                                                                    let value = convert ( operator, resultStack)
+                                                                    resultStack.Push(value)
                                             | _ -> failwith ""
                     | Bracket(value) -> match value with
                                             | '(' -> tokenStack.Push(token)
