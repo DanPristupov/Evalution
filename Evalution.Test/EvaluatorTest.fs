@@ -6,15 +6,13 @@ open Evalution
 
 [<TestClass>]
 type EvaluatorTest() =
+    let tokenizer = new Tokenizer()
+    let syntaxTree = new SyntaxTree()
 
     [<TestMethod>]
     member x.EvaluateTest1 ()=
-        let syntaxTree = new SyntaxTree()
-        let expression = syntaxTree.Build [
-            Integer 2;
-            Operator '+';
-            Integer 3;
-        ]
+        let tokens = tokenizer.Read "2+3"
+        let expression = syntaxTree.Build tokens
 
         let evaluator = new Evaluator();
         let result = evaluator.Evaluate(expression);
@@ -22,14 +20,8 @@ type EvaluatorTest() =
 
     [<TestMethod>]
     member x.EvaluateTest2 ()=
-        let syntaxTree = new SyntaxTree()
-        let expression = syntaxTree.Build [
-            Integer 2;
-            Operator '+';
-            Integer 3;
-            Operator '+';
-            Integer 1;
-        ]
+        let tokens = tokenizer.Read "2+3+1"
+        let expression = syntaxTree.Build tokens
 
         let evaluator = new Evaluator();
         let result = evaluator.Evaluate(expression);
@@ -37,37 +29,18 @@ type EvaluatorTest() =
 
     [<TestMethod>]
     member x.EvaluateTest3 ()=
-        let syntaxTree = new SyntaxTree()
-        let expression = syntaxTree.Build [
-            Integer 2;
-            Operator '+';
-            Integer 3;
-            Operator '*';
-            Integer 2;
-        ]
+        let tokens = tokenizer.Read "2+3*2"
+        let expression = syntaxTree.Build tokens
 
         let evaluator = new Evaluator();
         let result = evaluator.Evaluate(expression);
-        Assert.AreEqual(10.0, result)
+        Assert.AreEqual(8.0, result)
 
     [<TestMethod>]
     member x.EvaluateTest4 ()=
-        let syntaxTree = new SyntaxTree()
-        let expression1 = syntaxTree.Build [
-            Integer 1;
-            Operator '+';
-            Integer 3;
-            Operator '*';
-            Integer 2;
-        ]
+        let expression1 = syntaxTree.Build (tokenizer.Read "1+3*2")
 
-        let expression2 = syntaxTree.Build [
-            Integer 3;
-            Operator '*';
-            Integer 2;
-            Operator '+';
-            Integer 1;
-        ]
+        let expression2 = syntaxTree.Build (tokenizer.Read "3*2+1")
 
         let evaluator = new Evaluator();
         Assert.AreEqual(evaluator.Evaluate(expression1), evaluator.Evaluate(expression2))
