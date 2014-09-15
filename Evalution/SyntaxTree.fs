@@ -30,12 +30,22 @@ type public SyntaxTree() =
                                         | '(' -> true
                                         | _ -> false
                 | _ -> false
+            let isRightBracket token =
+                match token with
+                | Bracket(value) -> match value with
+                                        | '(' -> true
+                                        | _ -> false
+                | _ -> false
 
 
             while tokenStack.Count > 0 && not(isLeftBracket(tokenStack.Peek())) do
                 let operation = tokenStack.Pop()
                 resultStack.Push( convert((getOperator operation), resultStack))
+            if tokenStack.Count > 0 && isRightBracket(tokenStack.Peek()) then
+                tokenStack.Pop() |> ignore
             ()
+
+
 
         let getPriority token =
             match token with
