@@ -39,11 +39,11 @@ type public SyntaxTree() =
 
         let getPriority token =
             match token with
-            | Bracket(_) -> 100
+            | Bracket(_) -> 0
             | Operator(value) -> match value with
-                                 | '*' -> 11
-                                 | '+' -> 10
-            | Double(_) | Integer(_) -> 1
+                                 | '+' -> 1
+                                 | '*' -> 2
+            | Double(_) | Integer(_) -> 0
             | _ -> failwith ""
 
         let mutable resultStack = new Stack<Expression>()
@@ -60,14 +60,14 @@ type public SyntaxTree() =
                                                                 tokenStack.Push token
                                                             else
                                                                 let operation2 = tokenStack.Peek()
-                                                                if (getPriority token) > (getPriority operation2) then
-                                                                    tokenStack.Push(token)
-                                                                else
+                                                                if (getPriority token) <= (getPriority operation2) then
                                                                     tokenStack.Pop()
                                                                     tokenStack.Push(token)
                                                                     let operator = getOperator operation2
                                                                     let value = convert ( operator, resultStack)
                                                                     resultStack.Push(value)
+                                                                else
+                                                                    tokenStack.Push(token)
                                             | _ -> failwith ""
                     | Bracket(value) -> match value with
                                             | '(' -> tokenStack.Push(token)
