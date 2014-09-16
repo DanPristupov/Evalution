@@ -10,15 +10,14 @@
 
         let syntaxTree = new SyntaxTree()
         let expression = syntaxTree.Build [
-            Integer 1;
+            Double 1.0;
             Operator '+';
-            Integer 3;
-            Operator '*';
-            Integer 2;
+            Double 3.0;
         ]
         
 
         let evaluator = new Evaluator();
+        let compiledResult = evaluator.Compile(expression);
         let result = evaluator.Evaluate(expression);
         printfn "%A" result
         Console.ReadLine()
