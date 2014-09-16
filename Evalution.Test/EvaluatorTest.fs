@@ -62,3 +62,21 @@ type EvaluatorTest() =
         let evaluator = new Evaluator();
         let result = evaluator.Evaluate(expression);
         Assert.AreEqual(11.0, result)
+
+    [<TestMethod>]
+    member x.EvaluateTest7 ()=
+        let tokens = tokenizer.Read "(-1)"
+        let expression = syntaxTree.Build tokens
+
+        let evaluator = new Evaluator();
+        let result = evaluator.Evaluate(expression);
+        Assert.AreEqual(-1.0, result)
+
+    [<TestMethod>]
+    member x.EvaluateTest8 ()=
+        let tokens = tokenizer.Read "-(-1)-1"
+        let expression = syntaxTree.Build tokens
+
+        let evaluator = new Evaluator();
+        let result = evaluator.Evaluate(expression);
+        Assert.AreEqual(0, result)
