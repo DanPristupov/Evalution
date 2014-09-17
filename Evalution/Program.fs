@@ -9,15 +9,11 @@
         tokens |> Seq.iter ( printfn "%A")
 
         let syntaxTree = new SyntaxTree()
-        let expression = syntaxTree.Build [
-            Double 1.0;
-            Operator '+';
-            Double 3.0;
-        ]
+        let expression = syntaxTree.Build tokens
         
-
         let evaluator = new Evaluator();
         let compiledResult = evaluator.Compile(expression);
+        printfn "%A" compiledResult
         let result = evaluator.Evaluate(expression);
         printfn "%A" result
         Console.ReadLine()

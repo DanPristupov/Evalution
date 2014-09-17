@@ -29,6 +29,10 @@ type public Evaluator() =
             generateMethodBody(ilGen, l)
             generateMethodBody(ilGen, r)
             ilGen.Emit(OpCodes.Add)
+        |Multiplication (l, r) ->
+            generateMethodBody(ilGen, l)
+            generateMethodBody(ilGen, r)
+            ilGen.Emit(OpCodes.Mul)
         | _ -> failwith "blah"
         ()
 
