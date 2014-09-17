@@ -2,10 +2,9 @@
 
 open System.Reflection.Emit
 open System
+open Sigil
 
 type public Evaluator() =
-    let getConst (Const value) = value
-
     let rec evaluate expr = 
         match expr with
         | Addition (l, r) -> (evaluate l) + (evaluate r)
@@ -15,35 +14,34 @@ type public Evaluator() =
                         | CInteger(v) -> (float v)
                         | _ -> failwith "blah"
 
-    let rec generateMethodBody (ilGen:ILGenerator, expr) =
+    let rec generateMethodBody (emiter:Emit<Func<float>>, expr) =
         // I stopped here
         match expr with
         | Const(value) -> match value with
                 | CDouble(v) ->
-                    ilGen.Emit(OpCodes.Ldc_R8, v)                    
+                    emiter.LoadConstant(v)
                 | CInteger(v) ->
-                    ilGen.Emit(OpCodes.Ldc_I4, v)
-                    ilGen.Emit(OpCodes.Conv_R8)
+                    emiter.LoadConstant(v)
+                    emiter.Convert(typeof<float>)
                 | _ -> failwith "blah"
         |Addition (l, r) ->
-            generateMethodBody(ilGen, l)
-            generateMethodBody(ilGen, r)
-            ilGen.Emit(OpCodes.Add)
+            generateMethodBody(emiter, l)
+            generateMethodBody(emiter, r)
+            emiter.Add()
         |Multiplication (l, r) ->
-            generateMethodBody(ilGen, l)
-            generateMethodBody(ilGen, r)
-            ilGen.Emit(OpCodes.Mul)
+            generateMethodBody(emiter, l)
+            generateMethodBody(emiter, r)
+            emiter.Multiply()
         | _ -> failwith "blah"
         ()
 
     let rec compile expr = 
-        let dynamicMethod = new DynamicMethod("EvaluatorMethod", typeof<float>, null)
-        let ilGen = dynamicMethod.GetILGenerator();
-        ilGen.DeclareLocal(typeof<float>)
-        generateMethodBody(ilGen, expr)
-        ilGen.Emit(OpCodes.Ret)
+        let emiter = Emit<Func<float>>.NewDynamicMethod("EvaluatorMethod");
+        emiter.DeclareLocal(typeof<float>)
+        generateMethodBody(emiter, expr)
+        emiter.Return();
+        let action = emiter.CreateDelegate()
 
-        let action = dynamicMethod.CreateDelegate(typeof<Func<float>>) :?> Func<float>
         action.Invoke()
 
     member this.Compile (expr:Expression): float = compile expr
