@@ -20,8 +20,7 @@ type public Evaluator() =
         match expr with
         | Const(value) -> match value with
                 | CDouble(v) ->
-                    ilGen.Emit(OpCodes.Ldc_I4, v)
-                    ilGen.Emit(OpCodes.Conv_R8)                    
+                    ilGen.Emit(OpCodes.Ldc_R8, v)                    
                 | CInteger(v) ->
                     ilGen.Emit(OpCodes.Ldc_I4, v)
                     ilGen.Emit(OpCodes.Conv_R8)
@@ -40,9 +39,8 @@ type public Evaluator() =
         generateMethodBody(ilGen, expr)
         ilGen.Emit(OpCodes.Ret)
 
-        let returnType = typeof<Action<float>>
-        let action = dynamicMethod.CreateDelegate(typeof<Action<float>>) :?> Action<float>
-        action
+        let action = dynamicMethod.CreateDelegate(typeof<Func<float>>) :?> Func<float>
+        action.Invoke()
 
-    member this.Compile (expr:Expression) = compile expr
+    member this.Compile (expr:Expression): float = compile expr
     member this.Evaluate (expr:Expression) = evaluate expr
