@@ -17,7 +17,6 @@ type public Evaluator() =
                         | _ -> failwith "blah"
 
     let rec generateMethodBody (emiter:Emit<Func<float>>, expr) =
-        // I stopped here
         match expr with
         | Const(value) -> match value with
                 | CDouble(v) ->
@@ -37,6 +36,24 @@ type public Evaluator() =
         | _ -> failwith "blah"
         ()
 
+    let rec generateMethodBodyInt (emiter:Emit, expr) =
+        match expr with
+        | Const(value) -> match value with
+                | CDouble(v) ->
+                    emiter.LoadConstant(v)
+                | CInteger(v) ->
+                    emiter.LoadConstant(v)
+                | _ -> failwith "blah"
+        |Addition (l, r) ->
+            generateMethodBodyInt(emiter, l)
+            generateMethodBodyInt(emiter, r)
+            emiter.Add()
+        |Multiplication (l, r) ->
+            generateMethodBodyInt(emiter, l)
+            generateMethodBodyInt(emiter, r)
+            emiter.Multiply()
+        | _ -> failwith "blah"
+        ()
     let rec compile expr = 
         let emiter = Emit<Func<float>>.NewDynamicMethod("EvaluatorMethod");
         emiter.DeclareLocal(typeof<float>)
@@ -70,23 +87,25 @@ type public Evaluator() =
                                                  MethodAttributes.RTSpecialName) |> ignore
             typeBuilder.SetParent(objType)
 
-            let createGetPropertyMethodBuilder(propertyName, propertyType:Type, fieldBuilder):MethodBuilder =
+            let createGetPropertyMethodBuilder(propertyName, propertyType:Type, fieldBuilder, attribute:ExpressionAttribute):MethodBuilder =
                 let emitter = Emit.BuildMethod(propertyType,Array.empty,typeBuilder, "get_"+propertyName, MethodAttributes.Public ||| MethodAttributes.SpecialName ||| MethodAttributes.HideBySig ||| MethodAttributes.Virtual,CallingConventions.Standard ||| CallingConventions.HasThis)
-                emitter.LoadConstant(30)
-                // I stopped here. Need to add property body here.
+                let tokenizer = new Tokenizer()
+                let syntaxTree = new SyntaxTree()
+
+                generateMethodBodyInt(emitter, (syntaxTree.Build (tokenizer.Read attribute.Expression)))
                 emitter.Return()
                 emitter.CreateMethod()
 
-            let createProperty (property:PropertyInfo) =
+            let createProperty (property:PropertyInfo, attribute:ExpressionAttribute) =
                 let fieldBuilder = typeBuilder.DefineField("_" + property.Name, property.PropertyType, FieldAttributes.Private);
                 let propertyBuilder = typeBuilder.DefineProperty(property.Name, PropertyAttributes.HasDefault, property.PropertyType, null);
                 
-                let getMethodBuilder = createGetPropertyMethodBuilder(property.Name, property.PropertyType, fieldBuilder)
+                let getMethodBuilder = createGetPropertyMethodBuilder(property.Name, property.PropertyType, fieldBuilder, attribute)
                 propertyBuilder.SetGetMethod(getMethodBuilder);
 
                 ()
             for (property, attribute) in props do
-                createProperty(property)
+                createProperty(property, attribute)
 
             typeBuilder.CreateType()
 
@@ -94,16 +113,10 @@ type public Evaluator() =
             objType.GetProperties()
             |> Seq.map(fun x -> (x, x.GetCustomAttributes(typeof<ExpressionAttribute>, true)))
             |> Seq.filter(fun (prop, attributes) -> attributes.Length = 1 )
-            |> Seq.map(fun (prop, attributes) -> (prop, attributes |> Seq.head) )
+            |> Seq.map(fun (prop, attributes) -> (prop, attributes |> Seq.head :?>ExpressionAttribute) )
             |> Seq.toArray
 
         let resultType = createType (objType, properties)
-        // create type inherited from objType
-        // foreach property in properties
-        //  if property is not virtual -> error (because we can only use virtual methods)
-        //  override property
-        //  generate property body
-        //  create instance
 
         Activator.CreateInstance(resultType)
 
