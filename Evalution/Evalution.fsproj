@@ -49,6 +49,7 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ExpressionAttribute.fs" />
     <Compile Include="Tokenizer.fs" />
     <Compile Include="SyntaxTree.fs" />
     <Compile Include="Evaluator.fs" />
