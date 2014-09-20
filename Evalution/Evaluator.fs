@@ -1,5 +1,6 @@
 ﻿namespace Evalution
 
+open System.Reflection
 open System.Reflection.Emit
 open System
 open Sigil
@@ -44,6 +45,29 @@ type public Evaluator() =
 
         action.Invoke()
 
+    let createTypeBuilder (objType:Type) =
+        let typeSignature = "myType"
+        let assemblyName = new AssemblyName(typeSignature) // may be I should use assembly of the objType?
+        let assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run)
+        let moduleBuilder = assemblyBuilder.DefineDynamicModule("myTypeModule");
+        let typeBuilder = moduleBuilder.DefineType(typeSignature,
+                                TypeAttributes.Public |||
+                                TypeAttributes.Class |||
+                                TypeAttributes.AutoClass |||
+                                TypeAttributes.AnsiClass |||
+                                TypeAttributes.BeforeFieldInit |||
+                                TypeAttributes.AutoLayout,
+                                null)
+        typeBuilder
+
+    let createType (objType: Type) =
+        let typeBuilder = createTypeBuilder objType
+        typeBuilder.DefineDefaultConstructor(MethodAttributes.Public |||
+                                             MethodAttributes.SpecialName |||
+                                             MethodAttributes.RTSpecialName) |> ignore
+        typeBuilder.SetParent(objType)
+        typeBuilder.CreateType()
+
     let buildObject (objType:Type)=
         let properties =
             objType.GetProperties()
@@ -51,9 +75,16 @@ type public Evaluator() =
             |> Seq.filter(fun (prop, attributes) -> attributes.Length = 1 )
             |> Seq.map(fun (prop, attributes) -> (prop, attributes |> Seq.head) )
 
+        let newType = createType objType
+        // create type inherited from objType
+        // foreach property in properties
+        //  if property is not virtual -> error (because we can only use virtual methods)
+        //  override property
+        //  generate property body
+        //  create instance
         for (property, attribute) in properties do
             printfn "%s" property.Name
-        Activator.CreateInstance(objType)
+        Activator.CreateInstance(newType)
 
     member this.Compile (expr:Expression): float = compile expr
     member this.Evaluate (expr:Expression) = evaluate expr
