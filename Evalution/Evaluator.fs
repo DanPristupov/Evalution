@@ -4,6 +4,7 @@ open System.Reflection
 open System.Reflection.Emit
 open System
 open Sigil
+open Sigil.NonGeneric
 
 type public Evaluator() =
     let rec evaluate expr = 
@@ -60,31 +61,51 @@ type public Evaluator() =
                                 null)
         typeBuilder
 
-    let createType (objType: Type) =
-        let typeBuilder = createTypeBuilder objType
-        typeBuilder.DefineDefaultConstructor(MethodAttributes.Public |||
-                                             MethodAttributes.SpecialName |||
-                                             MethodAttributes.RTSpecialName) |> ignore
-        typeBuilder.SetParent(objType)
-        typeBuilder.CreateType()
-
     let buildObject (objType:Type)=
+
+        let createType (objType: Type, props):Type =
+            let typeBuilder = createTypeBuilder objType
+            typeBuilder.DefineDefaultConstructor(MethodAttributes.Public |||
+                                                 MethodAttributes.SpecialName |||
+                                                 MethodAttributes.RTSpecialName) |> ignore
+            typeBuilder.SetParent(objType)
+
+            let createGetPropertyMethodBuilder(propertyName, propertyType:Type, fieldBuilder):MethodBuilder =
+                let emitter = Emit.BuildMethod(propertyType,Array.empty,typeBuilder, "get_"+propertyName, MethodAttributes.Public ||| MethodAttributes.SpecialName ||| MethodAttributes.HideBySig ||| MethodAttributes.Virtual,CallingConventions.Standard ||| CallingConventions.HasThis)
+                emitter.LoadConstant(30)
+                // I stopped here. Need to add property body here.
+                emitter.Return()
+                emitter.CreateMethod()
+
+            let createProperty (property:PropertyInfo) =
+                let fieldBuilder = typeBuilder.DefineField("_" + property.Name, property.PropertyType, FieldAttributes.Private);
+                let propertyBuilder = typeBuilder.DefineProperty(property.Name, PropertyAttributes.HasDefault, property.PropertyType, null);
+                
+                let getMethodBuilder = createGetPropertyMethodBuilder(property.Name, property.PropertyType, fieldBuilder)
+                propertyBuilder.SetGetMethod(getMethodBuilder);
+
+                ()
+            for (property, attribute) in props do
+                createProperty(property)
+
+            typeBuilder.CreateType()
+
         let properties =
             objType.GetProperties()
             |> Seq.map(fun x -> (x, x.GetCustomAttributes(typeof<ExpressionAttribute>, true)))
             |> Seq.filter(fun (prop, attributes) -> attributes.Length = 1 )
             |> Seq.map(fun (prop, attributes) -> (prop, attributes |> Seq.head) )
+            |> Seq.toArray
 
-        let newType = createType objType
+        let resultType = createType (objType, properties)
         // create type inherited from objType
         // foreach property in properties
         //  if property is not virtual -> error (because we can only use virtual methods)
         //  override property
         //  generate property body
         //  create instance
-        for (property, attribute) in properties do
-            printfn "%s" property.Name
-        Activator.CreateInstance(newType)
+
+        Activator.CreateInstance(resultType)
 
     member this.Compile (expr:Expression): float = compile expr
     member this.Evaluate (expr:Expression) = evaluate expr
