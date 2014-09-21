@@ -67,19 +67,19 @@ type SyntaxTreeTest() =
         let syntaxTree = new SyntaxTree()
 
         let result = syntaxTree.Build [
-            Operator '(';
+            Bracket '(';
             Integer 42;
             Operator '+';
             Integer 8;
-            Operator ')';
+            Bracket ')';
             Operator '*';
             Integer 2;
         ]
-        
-        let expectedResult = [
-            Integer 42;
-            Operator '+';
-            Integer 31;
-        ]
+        let expectedResult = Multiplication (
+                                Const (CInteger 2),
+                                Addition (
+                                    Const (CInteger 8),
+                                    Const (CInteger 42)
+                                ))
         Assert.AreEqual(expectedResult, result)
  
