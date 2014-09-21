@@ -36,7 +36,7 @@ type public Evaluator() =
         | _ -> failwith "blah"
         ()
 
-    let rec generateMethodBodyInt (emiter:Emit, expr) =
+    let rec generateMethodBodyInt (emiter:Emit, expr, allProperties: PropertyInfo[]) =
         match expr with
         | Const(value) -> match value with
                 | CDouble(v) ->
@@ -44,13 +44,18 @@ type public Evaluator() =
                 | CInteger(v) ->
                     emiter.LoadConstant(v)
                 | _ -> failwith "blah"
+        |Property (name) ->
+            let property = allProperties |> Seq.find(fun x -> x.Name = name)
+            let getMethod = property.GetGetMethod()
+            emiter.LoadArgument(uint16 0)
+            emiter.CallVirtual(getMethod)
         |Addition (l, r) ->
-            generateMethodBodyInt(emiter, l)
-            generateMethodBodyInt(emiter, r)
+            generateMethodBodyInt(emiter, l, allProperties)
+            generateMethodBodyInt(emiter, r, allProperties)
             emiter.Add()
         |Multiplication (l, r) ->
-            generateMethodBodyInt(emiter, l)
-            generateMethodBodyInt(emiter, r)
+            generateMethodBodyInt(emiter, l, allProperties)
+            generateMethodBodyInt(emiter, r, allProperties)
             emiter.Multiply()
         | _ -> failwith "blah"
         ()
@@ -87,25 +92,26 @@ type public Evaluator() =
                                                  MethodAttributes.RTSpecialName) |> ignore
             typeBuilder.SetParent(objType)
 
-            let createGetPropertyMethodBuilder(propertyName, propertyType:Type, fieldBuilder, attribute:ExpressionAttribute):MethodBuilder =
+            let createGetPropertyMethodBuilder(propertyName, propertyType:Type, fieldBuilder, attribute:ExpressionAttribute, allProperties):MethodBuilder =
                 let emitter = Emit.BuildMethod(propertyType,Array.empty,typeBuilder, "get_"+propertyName, MethodAttributes.Public ||| MethodAttributes.SpecialName ||| MethodAttributes.HideBySig ||| MethodAttributes.Virtual,CallingConventions.Standard ||| CallingConventions.HasThis)
                 let tokenizer = new Tokenizer()
                 let syntaxTree = new SyntaxTree()
 
-                generateMethodBodyInt(emitter, (syntaxTree.Build (tokenizer.Read attribute.Expression)))
+                generateMethodBodyInt(emitter, (syntaxTree.Build (tokenizer.Read attribute.Expression)), allProperties)
                 emitter.Return()
                 emitter.CreateMethod()
 
-            let createProperty (property:PropertyInfo, attribute:ExpressionAttribute) =
+            let createProperty (property:PropertyInfo, attribute:ExpressionAttribute, allProperties) =
                 let fieldBuilder = typeBuilder.DefineField("_" + property.Name, property.PropertyType, FieldAttributes.Private);
                 let propertyBuilder = typeBuilder.DefineProperty(property.Name, PropertyAttributes.HasDefault, property.PropertyType, null);
                 
-                let getMethodBuilder = createGetPropertyMethodBuilder(property.Name, property.PropertyType, fieldBuilder, attribute)
+                let getMethodBuilder = createGetPropertyMethodBuilder(property.Name, property.PropertyType, fieldBuilder, attribute, allProperties)
                 propertyBuilder.SetGetMethod(getMethodBuilder);
 
                 ()
+            let allProperties = objType.GetProperties()
             for (property, attribute) in props do
-                createProperty(property, attribute)
+                createProperty(property, attribute, allProperties)
 
             typeBuilder.CreateType()
 

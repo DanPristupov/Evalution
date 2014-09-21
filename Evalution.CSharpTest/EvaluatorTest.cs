@@ -11,7 +11,11 @@ namespace Evalution.CSharpTest
         {
             var evaluator = new Evaluator();
             var target = evaluator.BuildObject<ClassWithDependency>();
-            Assert.AreEqual(6, target.ValueWithExpression);
+
+            target.Value1 = 4;
+            Assert.AreEqual(6, target.ValueWithExpression); // "2+2*2"
+            Assert.AreEqual(8, target.DependentValue1);     // "Value1*2"
+            Assert.AreEqual(16, target.DependentValue2);    // "DependentValue1*2"
         }
     }
 }
