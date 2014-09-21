@@ -7,6 +7,7 @@ type Token =
     | Integer of int
     | Operator of char
     | Bracket of char
+    | Property of string
     | None
 
 type public Tokenizer() =
@@ -21,9 +22,14 @@ type public Tokenizer() =
             | _ when Char.IsDigit(symbol) -> true
             | _ -> false
 
-        let rec getNumberSubString str index result =
-            if index < length && isPartOfNumeric input.[index] then
-                getNumberSubString str (index+1) (result + input.[index].ToString())
+        let isPartOfProperty (symbol:char) =
+            match symbol with
+            | _ when Char.IsLetterOrDigit(symbol) -> true
+            | _ -> false
+
+        let rec getSubString str index result testFunc=
+            if index < length && testFunc input.[index] then
+                getSubString str (index+1) (result + input.[index].ToString()) testFunc
             else
                 (result, index)
 
@@ -31,7 +37,7 @@ type public Tokenizer() =
             let symbol = input.[start]
 
             if isPartOfNumeric symbol then
-                let (substring, index) = getNumberSubString input start ""
+                let (substring, index) = getSubString input start "" isPartOfNumeric
 
                 let (succ, intValue) = Int32.TryParse substring
                 if succ then
@@ -42,6 +48,9 @@ type public Tokenizer() =
                         ((Double doubleValue), index)
                     else
                         failwith "fail"
+            else if isPartOfProperty symbol then
+                let (substring, index) = getSubString input start "" isPartOfProperty
+                ((Property substring), index)
             else
                 match symbol with
                 | ('+' | '-' | '*' | '/') -> ((Operator symbol), start+1)
