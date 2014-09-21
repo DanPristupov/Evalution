@@ -36,27 +36,27 @@ type public Evaluator() =
         | _ -> failwith "blah"
         ()
 
-    let rec generateMethodBodyInt (emiter:Emit, expr, allProperties: PropertyInfo[]) =
+    let rec generateMethodBodyInt (emitter:Emit, expr, allProperties: PropertyInfo[]) =
         match expr with
         | Const(value) -> match value with
                 | CDouble(v) ->
-                    emiter.LoadConstant(v)
+                    emitter.LoadConstant(v)
                 | CInteger(v) ->
-                    emiter.LoadConstant(v)
+                    emitter.LoadConstant(v)
                 | _ -> failwith "blah"
         |Property (name) ->
             let property = allProperties |> Seq.find(fun x -> x.Name = name)
             let getMethod = property.GetGetMethod()
-            emiter.LoadArgument(uint16 0)
-            emiter.CallVirtual(getMethod)
+            emitter.LoadArgument(uint16 0)
+            emitter.CallVirtual(getMethod)
         |Addition (l, r) ->
-            generateMethodBodyInt(emiter, l, allProperties)
-            generateMethodBodyInt(emiter, r, allProperties)
-            emiter.Add()
+            generateMethodBodyInt(emitter, l, allProperties)
+            generateMethodBodyInt(emitter, r, allProperties)
+            emitter.Add()
         |Multiplication (l, r) ->
-            generateMethodBodyInt(emiter, l, allProperties)
-            generateMethodBodyInt(emiter, r, allProperties)
-            emiter.Multiply()
+            generateMethodBodyInt(emitter, l, allProperties)
+            generateMethodBodyInt(emitter, r, allProperties)
+            emitter.Multiply()
         | _ -> failwith "blah"
         ()
     let rec compile expr = 
@@ -69,10 +69,10 @@ type public Evaluator() =
         action.Invoke()
 
     let createTypeBuilder (objType:Type) =
-        let typeSignature = "myType"
+        let typeSignature = "EV" + objType.Name
         let assemblyName = new AssemblyName(typeSignature) // may be I should use assembly of the objType?
         let assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run)
-        let moduleBuilder = assemblyBuilder.DefineDynamicModule("myTypeModule");
+        let moduleBuilder = assemblyBuilder.DefineDynamicModule("EvalutionModule");
         let typeBuilder = moduleBuilder.DefineType(typeSignature,
                                 TypeAttributes.Public |||
                                 TypeAttributes.Class |||
@@ -92,7 +92,7 @@ type public Evaluator() =
                                                  MethodAttributes.RTSpecialName) |> ignore
             typeBuilder.SetParent(objType)
 
-            let createGetPropertyMethodBuilder(propertyName, propertyType:Type, fieldBuilder, attribute:ExpressionAttribute, allProperties):MethodBuilder =
+            let createGetPropertyMethodBuilder(propertyName, propertyType:Type, attribute:ExpressionAttribute, allProperties):MethodBuilder =
                 let emitter = Emit.BuildMethod(propertyType,Array.empty,typeBuilder, "get_"+propertyName, MethodAttributes.Public ||| MethodAttributes.SpecialName ||| MethodAttributes.HideBySig ||| MethodAttributes.Virtual,CallingConventions.Standard ||| CallingConventions.HasThis)
                 let tokenizer = new Tokenizer()
                 let syntaxTree = new SyntaxTree()
@@ -102,10 +102,9 @@ type public Evaluator() =
                 emitter.CreateMethod()
 
             let createProperty (property:PropertyInfo, attribute:ExpressionAttribute, allProperties) =
-                let fieldBuilder = typeBuilder.DefineField("_" + property.Name, property.PropertyType, FieldAttributes.Private);
                 let propertyBuilder = typeBuilder.DefineProperty(property.Name, PropertyAttributes.HasDefault, property.PropertyType, null);
                 
-                let getMethodBuilder = createGetPropertyMethodBuilder(property.Name, property.PropertyType, fieldBuilder, attribute, allProperties)
+                let getMethodBuilder = createGetPropertyMethodBuilder(property.Name, property.PropertyType, attribute, allProperties)
                 propertyBuilder.SetGetMethod(getMethodBuilder);
 
                 ()
