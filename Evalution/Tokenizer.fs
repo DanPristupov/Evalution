@@ -7,7 +7,7 @@ type Token =
     | Integer of int
     | Operator of char
     | Bracket of char
-    | Property of string
+    | Identifier of string
     | None
 
 type public Tokenizer() =
@@ -50,7 +50,7 @@ type public Tokenizer() =
                         failwith "fail"
             else if isPartOfProperty symbol then
                 let (substring, index) = getSubString input start "" isPartOfProperty
-                ((Property substring), index)
+                ((Identifier substring), index)
             else
                 match symbol with
                 | ('+' | '-' | '*' | '/') -> ((Operator symbol), start+1)

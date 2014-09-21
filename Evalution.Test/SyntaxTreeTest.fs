@@ -70,7 +70,7 @@ type SyntaxTreeTest() =
             Bracket '(';
             Integer 42;
             Operator '+';
-            Integer 8;
+            Identifier "prop1";
             Bracket ')';
             Operator '*';
             Integer 2;
@@ -78,7 +78,7 @@ type SyntaxTreeTest() =
         let expectedResult = Multiplication (
                                 Const (CInteger 2),
                                 Addition (
-                                    Const (CInteger 8),
+                                    (Property "prop1"),
                                     Const (CInteger 42)
                                 ))
         Assert.AreEqual(expectedResult, result)

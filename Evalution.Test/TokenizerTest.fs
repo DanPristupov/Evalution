@@ -78,7 +78,7 @@ type TokenizerTest() =
         
         let expectedResult = [
             Bracket '(';
-            Property "prop2";
+            Identifier "prop2";
             Operator '+';
             Double 31.0;
         ]

@@ -8,6 +8,7 @@ type Const =
 
 type Expression = 
     | Const of Const
+    | Property of string
     | Addition of (Expression * Expression)
     | Multiplication of (Expression * Expression)
     | None
@@ -65,6 +66,7 @@ type public SyntaxTree() =
                 match token with
                     | Double(value) -> resultStack.Push (Const (CDouble value))
                     | Integer(value) -> resultStack.Push (Const (CInteger value))
+                    | Identifier(value) -> resultStack.Push (Expression.Property value)
                     | Operator(value) -> match value with
                                             | '*' | '+' -> if tokenStack.Count = 0 then
                                                                 tokenStack.Push token
@@ -79,7 +81,7 @@ type public SyntaxTree() =
                                                                 else
                                                                     tokenStack.Push(token)
                                             | _ -> failwith ""
-                    | Bracket(value) -> match value with
+                    | Token.Bracket(value) -> match value with
                                             | '(' -> tokenStack.Push(token)
                                             | ')' -> popStackTokens(tokenStack, resultStack)
                                             | _ -> failwith ""
