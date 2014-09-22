@@ -6,20 +6,6 @@ namespace Evalution.CSharpTest
     [TestClass]
     public class EvaluatorTest
     {
-        [TestMethod]
-        public void GeneralTest_Integer()
-        {
-            var evaluator = new Evaluator<ClassInt32>();
-            evaluator.Setup(x => x.ValueWithExpression, "2+2*2");
-            evaluator.Setup(x => x.DependentValue1, "Value1*2");
-            evaluator.Setup(x => x.DependentValue2, "DependentValue1*2");
-            var target = evaluator.BuildObject<ClassInt32>();
-
-            target.Value1 = 4;
-            Assert.AreEqual(6, target.ValueWithExpression); // "2+2*2"
-            Assert.AreEqual(8, target.DependentValue1);     // "Value1*2"
-            Assert.AreEqual(16, target.DependentValue2);    // "DependentValue1*2"
-        }
 
         [TestMethod]
         public void GeneralTest_Integer()
