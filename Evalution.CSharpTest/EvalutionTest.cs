@@ -9,11 +9,10 @@ namespace Evalution.CSharpTest
         [TestMethod]
         public void GeneralTest_NonGeneric()
         {
-            var classBuilder = new ClassBuilder(typeof(ClassInt32));
-// TODO:
-//            classBuilder.Setup(x => x.ValueWithExpression, "2+2*2");
-//            classBuilder.Setup(x => x.DependentValue1, "Value1*2");
-//            classBuilder.Setup(x => x.DependentValue2, "DependentValue1*2");
+            var classBuilder = new ClassBuilder(typeof(ClassInt32))
+                .Setup("ValueWithExpression", "2+2*2")
+                .Setup("DependentValue1", "Value1*2")
+                .Setup("DependentValue2", "DependentValue1*2");
             var target = (ClassInt32)classBuilder.BuildObject();
 
             target.Value1 = 4;

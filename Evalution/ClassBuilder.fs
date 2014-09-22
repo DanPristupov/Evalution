@@ -2,6 +2,8 @@
 open System
 
 type public ClassBuilder(targetType:Type) =
+    member this.Setup (property: string, expression: string) :ClassBuilder= 
+        this
 
     member this.BuildObject ():obj = 
         null
