@@ -14,7 +14,7 @@ namespace Evalution.CSharpTest
                 .Setup("DependentValue1", "Value1*2")
                 .Setup("DependentValue2", "DependentValue1*2");
             var target = (ClassInt32)classBuilder.BuildObject();
-
+            
             target.Value1 = 4;
             Assert.AreEqual(6, target.ValueWithExpression); // "2+2*2"
             Assert.AreEqual(8, target.DependentValue1); // "Value1*2"

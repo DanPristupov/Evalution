@@ -93,7 +93,9 @@ type public ClassBuilder(targetType:Type) =
 type public ClassBuilder<'T when 'T: null>() =
     inherit ClassBuilder(typeof<'T>)
 
-    member this.Setup<'TProperty> (property:Func<'T, 'TProperty>, expression: string):ClassBuilder<'T> = 
+    member this.Setup<'TProperty> (property:System.Linq.Expressions.Expression<Func<'T, 'TProperty>>, expression: string):ClassBuilder<'T> = 
+        let body = property.Body :?> System.Linq.Expressions.MemberExpression
+        base.Setup(body.Member.Name, expression)
         this
 
     member this.BuildObject ():'T = 
