@@ -28,7 +28,6 @@ namespace Evalution.CSharpTest
                 .Setup(x => x.ValueWithExpression, "2+2*2")
                 .Setup(x => x.DependentValue1, "Value1*2")
                 .Setup(x => x.DependentValue2, "DependentValue1*2");
-
             var target = classBuilder.BuildObject();
 
             target.Value1 = 4;
