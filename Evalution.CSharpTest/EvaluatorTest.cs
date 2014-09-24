@@ -11,7 +11,7 @@ namespace Evalution.CSharpTest
         public void GeneralTest_Integer()
         {
             var evaluator = new Evaluator();
-            var target = evaluator.BuildObject<ClassInt32>();
+            var target = evaluator.BuildObject<ClassInt32WithAttributes>();
 
             target.Value1 = 4;
             Assert.AreEqual(6, target.ValueWithExpression); // "2+2*2"

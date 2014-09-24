@@ -4,6 +4,17 @@
     {
         public int Value1 { get; set; }
 
+        public virtual int ValueWithExpression { get; set; }
+
+        public virtual int DependentValue1 { get; set; }
+
+        public virtual int DependentValue2 { get; set; }
+    }
+
+    public class ClassInt32WithAttributes
+    {
+        public int Value1 { get; set; }
+
         [Expression("2+2*2")]
         public virtual int ValueWithExpression { get; set; }
 
