@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Evalution.CSharpTest
@@ -29,6 +30,22 @@ namespace Evalution.CSharpTest
             Assert.AreEqual(7.0, target.ValueWithExpression);   // "2.0 + 2.0 * 2.5"
             Assert.AreEqual(3.0, target.DependentValue1);       // "Value1 * 2.0"
             Assert.AreEqual(6.0, target.DependentValue2);       // "DependentValue1 * 2.0"
+        }
+
+        [TestMethod]
+        public void GeneralTest_DateTime()
+        {
+            var start = new DateTime(2000, 1, 1);
+            var evaluator = new Evaluator();
+            var target = evaluator.BuildObject<ClassDateTime>();
+
+            target.Start = start;
+            target.End = start.AddDays(10);
+            Assert.AreEqual(3.0, target.ValueWithExpression1);  // "TimeSpan.FromHours(4) + TimeSpan.FromHours(1)"
+            Assert.AreEqual(3.0, target.ValueWithExpression2);  // "new DateTime(2014,1,1) + TimeSpan.FromHours(1)"
+            Assert.AreEqual(3.0, target.DependentValue1);       // "Start + Duration"
+            Assert.AreEqual(7.0, target.DependentValue2);       // "Start + TimeSpan.FromHours(4)"
+            Assert.AreEqual(7.0, target.DependentValue3);       // "End - Start"
         }
     }
 }
