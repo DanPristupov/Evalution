@@ -84,3 +84,19 @@ type TokenizerTest() =
         ]
         Assert.AreEqual(expectedResult, result)
 
+    [<TestMethod>]
+    member x.TestTokenReader_ComplexObject ()=
+        let result = tokenizer.Read "(prop2.Value1.SubValue2+31.0"
+        
+        let expectedResult = [
+            Bracket '(';
+            Identifier "prop2";
+            CallMember;
+            Identifier "Value1";
+            CallMember;
+            Identifier "SubValue2";
+            Operator '+';
+            Double 31.0;
+        ]
+        Assert.AreEqual(expectedResult, result)
+

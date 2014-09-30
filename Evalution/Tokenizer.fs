@@ -8,6 +8,7 @@ type Token =
     | Operator of char
     | Bracket of char
     | Identifier of string
+    | CallMember
     | None
 
 type public Tokenizer() =
@@ -15,6 +16,11 @@ type public Tokenizer() =
 
     let readFormula input = 
         let length = String.length(input)
+
+        let isStartOfNumerid (symbol:char) =
+            match symbol with
+            | _ when Char.IsDigit(symbol) -> true
+            | _ -> false
 
         let isPartOfNumeric (symbol:char) =
             match symbol with
@@ -36,7 +42,7 @@ type public Tokenizer() =
         let getToken start = 
             let symbol = input.[start]
 
-            if isPartOfNumeric symbol then
+            if isStartOfNumerid symbol then
                 let (substring, index) = getSubString input start "" isPartOfNumeric
 
                 let (succ, intValue) = Int32.TryParse substring
@@ -55,6 +61,7 @@ type public Tokenizer() =
                 match symbol with
                 | ('+' | '-' | '*' | '/') -> ((Operator symbol), start+1)
                 | ('(' | ')') -> ((Bracket symbol), start+1)
+                | '.' -> (CallMember, start+1)
                 | ' ' -> (None, start+1)
                 | _ -> failwith "fail"
 
