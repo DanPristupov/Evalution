@@ -47,5 +47,16 @@ namespace Evalution.CSharpTest
             Assert.AreEqual(7.0, target.DependentValue2);       // "Start + TimeSpan.FromHours(4)"
             Assert.AreEqual(7.0, target.DependentValue3);       // "End - Start"
         }
+
+        [TestMethod]
+        public void GeneralTest_ComplexObject()
+        {
+            var evaluator = new Evaluator();
+            var target = evaluator.BuildObject<ComplexObject>();
+            var child = new ClassInt32 {Value1 = 4};
+            target.Child = child;
+            Assert.AreEqual(8, target.DependentValue1);     // "Child.Value1*2"
+            Assert.AreEqual(16, target.DependentValue2);    // "DependentValue1*2"
+        }
     }
 }

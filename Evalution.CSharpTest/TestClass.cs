@@ -62,4 +62,16 @@ namespace Evalution.CSharpTest
         [Expression("End - Start")]
         public virtual TimeSpan DependentValue3 { get; set; }
     }
+
+    public class ComplexObject
+    {
+        public ClassInt32 Child { get; set; }
+
+        [Expression("Child.Value1*2")]
+        public virtual int DependentValue1 { get; set; }
+
+        [Expression("DependentValue1*2")]
+        public virtual int DependentValue2 { get; set; }
+    }
+
 }
