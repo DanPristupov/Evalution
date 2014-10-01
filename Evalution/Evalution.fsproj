@@ -53,6 +53,7 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Ast.fs" />
     <Compile Include="ExpressionAttribute.fs" />
     <Compile Include="Tokenizer.fs" />
     <Compile Include="SyntaxTree.fs" />
