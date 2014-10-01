@@ -2,8 +2,8 @@
 type Program = Expression
 
 and Expression =
-    | LiteralExpression of Literal
     | BinaryExpression of Expression * BinaryOperator * Expression
+    | LiteralExpression of Literal
 and Literal =
     | BoolLiteral of bool
     | Int32Literal of int
