@@ -35,26 +35,28 @@ type public ClassBuilder(targetType:Type) =
         typeBuilder.SetParent(objType)
 
         let createGetPropertyMethodBuilder(propertyName, propertyType:Type, expression, allProperties):MethodBuilder =
-            let rec generateMethodBodyInt (emitter:Emit, program: Ast.Program, allProperties: PropertyInfo[]) =
+            let emitter = Emit.BuildMethod(propertyType,Array.empty,typeBuilder, "get_"+propertyName, MethodAttributes.Public ||| MethodAttributes.SpecialName ||| MethodAttributes.HideBySig ||| MethodAttributes.Virtual,CallingConventions.Standard ||| CallingConventions.HasThis)
+
+            let rec generateMethodBodyInt (program: Ast.Program, allProperties: PropertyInfo[]) =
                 match program with
                 | Ast.BinaryExpression (leftExpr, operator, rightExpr) ->
-                    let loadArgumentsOnStack () =
-                        generateMethodBodyInt(emitter, leftExpr, allProperties)
-                        generateMethodBodyInt(emitter, rightExpr, allProperties)
+                    let loadExpressionResultOnStack () =
+                        generateMethodBodyInt(leftExpr, allProperties)
+                        generateMethodBodyInt(rightExpr, allProperties)
                         ()
 
                     match operator with
                     | Ast.Add ->
-                        loadArgumentsOnStack()
+                        loadExpressionResultOnStack()
                         emitter.Add() |> ignore
                     | Ast.Subtract ->
-                        loadArgumentsOnStack()
+                        loadExpressionResultOnStack()
                         emitter.Subtract() |> ignore
                     | Ast.Multiply ->
-                        loadArgumentsOnStack()
+                        loadExpressionResultOnStack()
                         emitter.Multiply() |> ignore
                     | Ast.Divide ->
-                        loadArgumentsOnStack()
+                        loadExpressionResultOnStack()
                         emitter.Divide() |> ignore
                     | _ -> failwith "Unknown Binary operator"
                 | Ast.LiteralExpression (literal) ->
@@ -73,9 +75,7 @@ type public ClassBuilder(targetType:Type) =
                 | _ -> failwith "Unknown expression"
 
 
-            let emitter = Emit.BuildMethod(propertyType,Array.empty,typeBuilder, "get_"+propertyName, MethodAttributes.Public ||| MethodAttributes.SpecialName ||| MethodAttributes.HideBySig ||| MethodAttributes.Virtual,CallingConventions.Standard ||| CallingConventions.HasThis)
-
-            generateMethodBodyInt(emitter, (AstBuilder.build expression), allProperties)
+            generateMethodBodyInt((AstBuilder.build expression), allProperties)
             emitter.Return()
             emitter.CreateMethod()
 
