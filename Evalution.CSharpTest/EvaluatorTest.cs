@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace Evalution.CSharpTest
 {
-    [TestClass]
+    [TestFixture]
     public class EvaluatorTest
     {
 
-        [TestMethod]
+        [Test]
         public void GeneralTest_Integer()
         {
             var evaluator = new Evaluator();
@@ -20,7 +20,7 @@ namespace Evalution.CSharpTest
             Assert.AreEqual(16, target.DependentValue2);    // "DependentValue1*2"
         }
 
-        [TestMethod]
+        [Test]
         public void GeneralTest_Double()
         {
             var evaluator = new Evaluator();
@@ -32,7 +32,7 @@ namespace Evalution.CSharpTest
             Assert.AreEqual(6.0, target.DependentValue2);       // "DependentValue1 * 2.0"
         }
 
-        [TestMethod]
+        [Test]
         public void GeneralTest_DateTime()
         {
             var start = new DateTime(2000, 1, 1);
@@ -48,7 +48,7 @@ namespace Evalution.CSharpTest
             Assert.AreEqual(7.0, target.DependentValue3);       // "End - Start"
         }
 
-        [TestMethod]
+        [Test]
         public void GeneralTest_ComplexObject()
         {
             var evaluator = new Evaluator();

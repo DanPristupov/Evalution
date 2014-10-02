@@ -1,12 +1,12 @@
 ﻿namespace Evalution.Test
 open System
-open Microsoft.VisualStudio.TestTools.UnitTesting
 open Evalution
+open NUnit.Framework
 
-[<TestClass>]
+[<TestFixture>]
 type AstBuilderTest() =
     
-    [<TestMethod>]
+    [<Test>]
     member x.TestAddition ()=
         let result = AstBuilder.build "1+2"
         
@@ -18,7 +18,7 @@ type AstBuilderTest() =
 
         Assert.AreEqual(expectedResult, result)
 
-    [<TestMethod>]
+    [<Test>]
     member x.TestSubtract ()=
         let result = AstBuilder.build "1-2"
         
@@ -30,7 +30,7 @@ type AstBuilderTest() =
 
         Assert.AreEqual(expectedResult, result)
 
-    [<TestMethod>]
+    [<Test>]
     member x.TestMultiply ()=
         let result = AstBuilder.build "1*2"
         
@@ -42,7 +42,7 @@ type AstBuilderTest() =
 
         Assert.AreEqual(expectedResult, result)
 
-    [<TestMethod>]
+    [<Test>]
     member x.TestDivide ()=
         let result = AstBuilder.build "1/2"
         
@@ -54,7 +54,7 @@ type AstBuilderTest() =
 
         Assert.AreEqual(expectedResult, result)
 
-    [<TestMethod>]
+    [<Test>]
     member x.TestInt32Literal ()=
         let result = AstBuilder.build "1"
         
@@ -63,7 +63,7 @@ type AstBuilderTest() =
 
         Assert.AreEqual(expectedResult, result)
 
-    [<TestMethod>]
+    [<Test>]
     member x.TestDoubleLiteral ()=
         let result = AstBuilder.build "1.5"
         
@@ -72,7 +72,7 @@ type AstBuilderTest() =
 
         Assert.AreEqual(expectedResult, result)
 
-    [<TestMethod>]
+    [<Test>]
     member x.TestBinaryExpressionInt32DivideDouble ()=
         let result = AstBuilder.build "3/2"
         

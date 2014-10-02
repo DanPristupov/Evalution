@@ -1,13 +1,13 @@
 ﻿namespace UnitTestProject1
 
 open System
-open Microsoft.VisualStudio.TestTools.UnitTesting
+open NUnit.Framework
 open Evalution
 
-[<TestClass>]
+[<TestFixture>]
 type SyntaxTreeTest() =
 
-    [<TestMethod>]
+    [<Test>]
     member x.TestBuildSyntaxTree1 ()=
         let syntaxTree = new SyntaxTree()
 
@@ -20,7 +20,7 @@ type SyntaxTreeTest() =
         let expectedResult = Addition (Const (CInteger 8), Const (CInteger 42))
         Assert.AreEqual(expectedResult, result)
 
-    [<TestMethod>]
+    [<Test>]
     member x.TestBuildSyntaxTree2 ()=
         let syntaxTree = new SyntaxTree()
 
@@ -41,7 +41,7 @@ type SyntaxTreeTest() =
         )
         Assert.AreEqual(expectedResult, result)
 
-    [<TestMethod>]
+    [<Test>]
     member x.TestBuildSyntaxTree3 ()=
         let syntaxTree = new SyntaxTree()
 
@@ -62,7 +62,7 @@ type SyntaxTreeTest() =
         )
         Assert.AreEqual(expectedResult, result)
 
-    [<TestMethod>]
+    [<Test>]
     member x.TestBuildSyntaxTree4 ()=
         let syntaxTree = new SyntaxTree()
 

@@ -1,14 +1,14 @@
 ﻿namespace UnitTestProject1
 
 open System
-open Microsoft.VisualStudio.TestTools.UnitTesting
+open NUnit.Framework
 open Evalution
 
-[<TestClass>]
+[<TestFixture>]
 type TokenizerTest() = 
     let tokenizer = new Tokenizer()
 
-    [<TestMethod>]
+    [<Test>]
     member x.TestTokenReader1 ()=
         let result = tokenizer.Read "42+31"
         
@@ -19,7 +19,7 @@ type TokenizerTest() =
         ]
         Assert.AreEqual(expectedResult, result)
 
-    [<TestMethod>]
+    [<Test>]
     member x.TestTokenReader2 ()=
         let result = tokenizer.Read "(42+31)"
         
@@ -32,7 +32,7 @@ type TokenizerTest() =
         ]
         Assert.AreEqual(expectedResult, result)
 
-    [<TestMethod>]
+    [<Test>]
     member x.TestTokenReader3 ()=
         let result = tokenizer.Read "(42+31.0)"
         
@@ -45,7 +45,7 @@ type TokenizerTest() =
         ]
         Assert.AreEqual(expectedResult, result)
 
-    [<TestMethod>]
+    [<Test>]
     member x.TestTokenReader4 ()=
         let result = tokenizer.Read "(42+ 8) *2"
         
@@ -60,7 +60,7 @@ type TokenizerTest() =
         ]
         Assert.AreEqual(expectedResult, result)
 
-    [<TestMethod>]
+    [<Test>]
     member x.TestTokenReader5 ()=
         let result = tokenizer.Read "(42.87+31.0"
         
@@ -72,7 +72,7 @@ type TokenizerTest() =
         ]
         Assert.AreEqual(expectedResult, result)
 
-    [<TestMethod>]
+    [<Test>]
     member x.TestTokenReader6 ()=
         let result = tokenizer.Read "(prop2+31.0"
         
@@ -84,7 +84,7 @@ type TokenizerTest() =
         ]
         Assert.AreEqual(expectedResult, result)
 
-    [<TestMethod>]
+    [<Test>]
     member x.TestTokenReader_ComplexObject ()=
         let result = tokenizer.Read "(prop2.Value1.SubValue2+31.0"
         

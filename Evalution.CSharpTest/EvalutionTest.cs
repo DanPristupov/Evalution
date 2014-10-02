@@ -1,12 +1,12 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace Evalution.CSharpTest
 {
-    [TestClass]
+    [TestFixture]
     public class ClassBuilderTest
     {
-        [TestMethod]
+        [Test]
         public void GeneralTest_NonGeneric()
         {
             var classBuilder = new ClassBuilder(typeof(ClassInt32))
@@ -21,7 +21,7 @@ namespace Evalution.CSharpTest
             Assert.AreEqual(16, target.DependentValue2); // "DependentValue1*2"
         }
 
-        [TestMethod]
+        [Test]
         public void GeneralTest_Generic()
         {
             var classBuilder = new ClassBuilder<ClassInt32>()
