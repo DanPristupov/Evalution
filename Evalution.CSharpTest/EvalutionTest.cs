@@ -37,6 +37,22 @@ namespace Evalution.CSharpTest
         }
 
         [Test]
+        public void GeneralTest_BinaryExpressions()
+        {
+            var classBuilder = new ClassBuilder<ClassInt32>()
+                .Setup(x => x.DependentValue1, "2+2+2")
+                .Setup(x => x.DependentValue2, "2+2-2")
+                .Setup(x => x.DependentValue3, "2+2*2")
+                .Setup(x => x.DependentValue4, "2+2/2");
+            var target = classBuilder.BuildObject();
+
+            Assert.AreEqual(6, target.DependentValue1);
+            Assert.AreEqual(2, target.DependentValue2);
+            Assert.AreEqual(6, target.DependentValue3);
+            Assert.AreEqual(3, target.DependentValue4);
+        }
+
+        [Test]
         public void GeneralTest_Double()
         {
             var classBuilder = new ClassBuilder<ClassDouble>()

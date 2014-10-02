@@ -37,22 +37,31 @@ type public ClassBuilder(targetType:Type) =
         let createGetPropertyMethodBuilder(propertyName, propertyType:Type, expression, allProperties):MethodBuilder =
             let rec generateMethodBodyInt (emitter:Emit, program: Ast.Program, allProperties: PropertyInfo[]) =
                 match program with
-                | Ast.BinaryExpression (leftExpr, operator, rightExpression) ->
+                | Ast.BinaryExpression (leftExpr, operator, rightExpr) ->
+                    let loadArgumentsOnStack () =
+                        generateMethodBodyInt(emitter, leftExpr, allProperties)
+                        generateMethodBodyInt(emitter, rightExpr, allProperties)
+                        ()
+
                     match operator with
                     | Ast.Add ->
-                        generateMethodBodyInt(emitter, leftExpr, allProperties)
-                        generateMethodBodyInt(emitter, rightExpression, allProperties)
+                        loadArgumentsOnStack()
                         emitter.Add() |> ignore
+                    | Ast.Subtract ->
+                        loadArgumentsOnStack()
+                        emitter.Subtract() |> ignore
                     | Ast.Multiply ->
-                        generateMethodBodyInt(emitter, leftExpr, allProperties)
-                        generateMethodBodyInt(emitter, rightExpression, allProperties)
+                        loadArgumentsOnStack()
                         emitter.Multiply() |> ignore
-                    | _ -> failwith "blah"
+                    | Ast.Divide ->
+                        loadArgumentsOnStack()
+                        emitter.Divide() |> ignore
+                    | _ -> failwith "Unknown Binary operator"
                 | Ast.LiteralExpression (literal) ->
                     match literal with
                     | Ast.Int32Literal (v) ->
                         emitter.LoadConstant(v) |> ignore
-                    | _ -> failwith "blah"
+                    | _ -> failwith "Unknown literal"
                 | Ast.IdentifierExpression (literal) ->
                     match literal with
                     | Ast.Identifier (ident) ->
@@ -60,8 +69,8 @@ type public ClassBuilder(targetType:Type) =
                         let getMethod = property.GetGetMethod()
                         emitter.LoadArgument(uint16 0)
                         emitter.CallVirtual(getMethod) |> ignore
-                    | _ -> failwith "blah"
-                | _ -> failwith "blah"
+                    | _ -> failwith "Unknown identifier"
+                | _ -> failwith "Unknown expression"
 
 
             let emitter = Emit.BuildMethod(propertyType,Array.empty,typeBuilder, "get_"+propertyName, MethodAttributes.Public ||| MethodAttributes.SpecialName ||| MethodAttributes.HideBySig ||| MethodAttributes.Virtual,CallingConventions.Standard ||| CallingConventions.HasThis)

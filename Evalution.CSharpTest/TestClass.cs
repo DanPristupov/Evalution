@@ -11,6 +11,11 @@ namespace Evalution.CSharpTest
         public virtual int DependentValue1 { get; set; }
 
         public virtual int DependentValue2 { get; set; }
+
+        public virtual int DependentValue3 { get; set; }
+
+        public virtual int DependentValue4 { get; set; }
+
     }
 
     public class ClassDouble
