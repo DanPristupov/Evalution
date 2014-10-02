@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Ast.fs" />
+    <Compile Include="AstBuilder.fs" />
     <Compile Include="ExpressionAttribute.fs" />
     <Compile Include="Tokenizer.fs" />
     <Compile Include="SyntaxTree.fs" />

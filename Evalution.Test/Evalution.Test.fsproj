@@ -59,6 +59,7 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AstBuilderTest.fs" />
     <Compile Include="EvaluatorTest.fs" />
     <Compile Include="TokenizerTest.fs" />
     <Compile Include="SyntaxTreeTest.fs" />
