@@ -12,7 +12,7 @@ namespace Evalution.CSharpTest
 
         public virtual int DependentValue2 { get; set; }
     }
-
+/*
     public class ClassInt32WithAttributes
     {
         public int Value1 { get; set; }
@@ -72,6 +72,6 @@ namespace Evalution.CSharpTest
 
         [Expression("DependentValue1*2")]
         public virtual int DependentValue2 { get; set; }
-    }
+    }*/
 
 }

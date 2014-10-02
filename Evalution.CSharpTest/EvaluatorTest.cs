@@ -7,7 +7,7 @@ namespace Evalution.CSharpTest
     [TestFixture]
     public class EvaluatorTest
     {
-
+/*
         [Test]
         public void GeneralTest_Integer()
         {
@@ -58,5 +58,6 @@ namespace Evalution.CSharpTest
             Assert.AreEqual(8, target.DependentValue1);     // "Child.Value1*2"
             Assert.AreEqual(16, target.DependentValue2);    // "DependentValue1*2"
         }
+ */
     }
 }
