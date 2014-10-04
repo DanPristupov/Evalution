@@ -104,3 +104,15 @@ type AstBuilderTest() =
             Ast.LiteralExpression(Ast.DoubleLiteral(1.5))
 
         Assert.AreEqual(expectedResult, result)
+
+    [<Test>]
+    member x.TestIdentifierExpression ()=
+        let result = AstBuilder.build "variable/2"
+        
+        let expectedResult =
+            Ast.BinaryExpression(
+                Ast.IdentifierExpression(Ast.Identifier("variable")),
+                Ast.Divide,
+                Ast.LiteralExpression(Ast.Int32Literal(2)))
+
+        Assert.AreEqual(expectedResult, result)
