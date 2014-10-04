@@ -4,8 +4,8 @@ type Program = Expression
 and Expression =
     | BinaryExpression of Expression * BinaryOperator * Expression
     | LiteralExpression of Literal
-    | IdentifierExpression of IdentifierRef
-    | PropertyCallExpression of PropertyCall
+//    | IdentifierExpression of IdentifierRef // TODO: check and remove
+    | MultiCallExpression of MultiCall
 
 and Literal =
     | BoolLiteral of bool
@@ -21,6 +21,6 @@ and BinaryOperator =
 and IdentifierRef =
     | Identifier of string
     
-and PropertyCall =
-    | ThisPropertyCall of string
-    | ObjectPropertyCall of PropertyCall * string
+and MultiCall =
+    | ThisPropertyCall of IdentifierRef
+    | ObjectPropertyCall of MultiCall * IdentifierRef
