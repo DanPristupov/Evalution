@@ -89,18 +89,49 @@ namespace Evalution.CSharpTest
         }
 
         [Test]
-        public void GeneralTest_ComplexObject()
+        public void GeneralTest_ComplexObjectDouble()
         {
             var classBuilder = new ClassBuilder<ComplexObject>()
                 .Setup(x => x.DependentValue1, "Child.Value1*2")
                 .Setup(x => x.DependentValue2, "DependentValue1*2");
             var target = classBuilder.BuildObject();
             
-            var child = new ClassInt32 { Value1 = 4 };
+            var child = new ClassInt32 { Value1 = 3 };
             target.Child = child;
 
-            Assert.AreEqual(3.0, target.DependentValue1);       // "Child.Value1*2"
-            Assert.AreEqual(7.0, target.DependentValue2);       // "DependentValue1*2
+            Assert.AreEqual(6.0, target.DependentValue1);   // "Child.Value1*2"
+            Assert.AreEqual(12.0, target.DependentValue2);  // "DependentValue1*2
+        }
+
+        [Test]
+        public void GeneralTest_ComplexObjectTriple()
+        {
+            var classBuilder = new ClassBuilder<ComplexObject>()
+                .Setup(x => x.DependentValue1, "ComplexChild.Child.Value1*2");
+            var target = classBuilder.BuildObject();
+            
+            target.ComplexChild = new ComplexObject
+            {
+                Child = new ClassInt32 { Value1 = 3 }
+            };
+
+            Assert.AreEqual(6.0, target.DependentValue1);   // "ComplexChild.Child.Value1*2"
+        }
+
+        [Test]
+        public void GeneralTest_ComplexEvalutionObject()
+        {
+            var classBuilder = new ClassBuilder<ComplexObject>()
+                .Setup(x => x.DependentValue1, "Child.DependentValue1*2");
+            var target = classBuilder.BuildObject();
+
+            var dependentClassBuilder = new ClassBuilder<ClassInt32>()
+                .Setup(x => x.DependentValue1, "7");
+            var dependentObject = dependentClassBuilder.BuildObject();
+
+            target.Child = dependentObject;
+
+            Assert.AreEqual(14.0, target.DependentValue1);   // "Child.DependentValue1*2"
         }
 
 

@@ -49,6 +49,8 @@ namespace Evalution.CSharpTest
     {
         public ClassInt32 Child { get; set; }
 
+        public ComplexObject ComplexChild { get; set; }
+
         public virtual int DependentValue1 { get; set; }
 
         public virtual int DependentValue2 { get; set; }
