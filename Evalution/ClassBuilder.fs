@@ -53,7 +53,6 @@ type public ClassBuilder(targetType:Type) =
                     let subPropertyType = generateMulticallBody(prevCall, thisType)
                     let (Ast.Identifier targetPropertyName) = ident
                     createPropertyCall(subPropertyType.GetProperties(), targetPropertyName)
-                | _ -> failwith "Unknown Multicall identifier"
 
             let rec generateMethodBody (program: Ast.Program) =
                 match program with
@@ -75,7 +74,6 @@ type public ClassBuilder(targetType:Type) =
                     | Ast.Divide ->
                         loadExpressionResultOnStack()
                         emitter.Divide() |> ignore
-                    | _ -> failwith "Unknown Binary operator"
                 | Ast.LiteralExpression (literal) ->
                     match literal with
                     | Ast.Int32Literal (v) ->
@@ -85,8 +83,6 @@ type public ClassBuilder(targetType:Type) =
                     | _ -> failwith "Unknown literal"
                 | Ast.MultiCallExpression (multicall) ->
                     generateMulticallBody(multicall, objType) |> ignore
-                | _ -> failwith "Unknown expression"
-
 
             generateMethodBody(AstBuilder.build expression)
             emitter.Return() |> ignore

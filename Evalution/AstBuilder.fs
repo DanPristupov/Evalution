@@ -16,11 +16,11 @@
         let dot = configurator.CreateTerminal(@"\.")
         let identifier = configurator.CreateTerminal(@"[a-zA-Z_][a-zA-Z_0-9]*", fun x -> box(Ast.Identifier(x)))
 
-        configurator.LeftAssociative(plus)
-        configurator.LeftAssociative(minus)
-        configurator.LeftAssociative(asterisk)
-        configurator.LeftAssociative(forwardSlash)
-        configurator.LeftAssociative(dot)
+        configurator.LeftAssociative(plus) |> ignore
+        configurator.LeftAssociative(minus) |> ignore
+        configurator.LeftAssociative(asterisk) |> ignore
+        configurator.LeftAssociative(forwardSlash) |> ignore
+        configurator.LeftAssociative(dot) |> ignore
 
         expressionSpec.AddProduction(expressionSpec, plus, expressionSpec)
             .SetReduceFunction(fun x -> box (Ast.BinaryExpression(x.[0] :?> Ast.Expression, Ast.Add, x.[2] :?>Ast.Expression)))
