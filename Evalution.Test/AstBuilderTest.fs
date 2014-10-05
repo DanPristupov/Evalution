@@ -74,7 +74,7 @@ type AstBuilderTest() =
 
     [<Test>]
     member x.TestTimeSpanLiteral ()=
-        let result = AstBuilder.build "TimeSpan.FromHours(4)"
+        let result = AstBuilder.build "TimeSpan.FromHours(4.0)"
         
         let expectedResult =
             Ast.LiteralExpression(Ast.TimeSpanLiteral(TimeSpan.FromHours(4.0)))
