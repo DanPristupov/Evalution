@@ -37,6 +37,25 @@ type public ClassBuilder(targetType:Type) =
         let createGetPropertyMethodBuilder(propertyName, propertyType:Type, expression, allProperties):MethodBuilder =
             let emitter = Emit.BuildMethod(propertyType,Array.empty,typeBuilder, "get_"+propertyName, MethodAttributes.Public ||| MethodAttributes.SpecialName ||| MethodAttributes.HideBySig ||| MethodAttributes.Virtual,CallingConventions.Standard ||| CallingConventions.HasThis)
 
+            let rec generateMulticallBody (multicall: Ast.MultiCall, allProperties: PropertyInfo[], objType: Type) =
+                // TODO: refactoring required here. allProperties and objType can be removed.
+                match multicall with
+                | Ast.ThisPropertyCall (ident) ->
+                    let (Ast.Identifier propertyName) = ident
+                    let property = allProperties |> Seq.find(fun x -> x.Name = propertyName)
+                    let getMethod = property.GetGetMethod()
+                    emitter.LoadArgument(uint16 0)
+                    emitter.CallVirtual(getMethod) |> ignore
+                    property.PropertyType
+                | Ast.ObjectPropertyCall (prevCall, ident) ->
+                    let subPropertyType = generateMulticallBody(prevCall, allProperties, objType)
+                    let (Ast.Identifier propertyName) = ident
+                    let property = subPropertyType.GetProperties() |> Seq.find(fun x -> x.Name = propertyName)
+                    let getMethod = property.GetGetMethod()
+                    emitter.CallVirtual(getMethod) |> ignore
+                    property.PropertyType
+                | _ -> failwith "Unknown Multicall identifier"
+
             let rec generateMethodBodyInt (program: Ast.Program, allProperties: PropertyInfo[]) =
                 match program with
                 | Ast.BinaryExpression (leftExpr, operator, rightExpr) ->
@@ -65,14 +84,7 @@ type public ClassBuilder(targetType:Type) =
                         emitter.LoadConstant(v) |> ignore
                     | _ -> failwith "Unknown literal"
                 | Ast.MultiCallExpression (literal) ->
-                    match literal with
-                    | Ast.ThisPropertyCall (ident) ->
-                        let (Ast.Identifier propertyName) = ident
-                        let property = allProperties |> Seq.find(fun x -> x.Name = propertyName)
-                        let getMethod = property.GetGetMethod()
-                        emitter.LoadArgument(uint16 0)
-                        emitter.CallVirtual(getMethod) |> ignore
-                    | _ -> failwith "Unknown identifier"
+                    generateMulticallBody(literal, allProperties, objType) |> ignore
                 | _ -> failwith "Unknown expression"
 
 
