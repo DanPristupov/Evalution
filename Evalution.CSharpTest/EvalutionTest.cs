@@ -56,9 +56,9 @@ namespace Evalution.CSharpTest
         public void GeneralTest_Double()
         {
             var classBuilder = new ClassBuilder<ClassDouble>()
-                .Setup(x => x.ValueWithExpression,  "2.0+2.0*2.5")
-                .Setup(x => x.DependentValue1,      "Value1*2.0")
-                .Setup(x => x.DependentValue2,      "DependentValue1*2.0");
+                .Setup(x => x.ValueWithExpression,  "2.0 + 2.0 * 2.5")
+                .Setup(x => x.DependentValue1,      "Value1 * 2.0")
+                .Setup(x => x.DependentValue2,      "DependentValue1 * 2.0");
             var target = classBuilder.BuildObject();
 
             target.Value1 = 1.5;

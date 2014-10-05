@@ -55,12 +55,12 @@ type public ClassBuilder(targetType:Type) =
                     createPropertyCall(subPropertyType.GetProperties(), targetPropertyName)
                 | _ -> failwith "Unknown Multicall identifier"
 
-            let rec generateMethodBodyInt (program: Ast.Program) =
+            let rec generateMethodBody (program: Ast.Program) =
                 match program with
                 | Ast.BinaryExpression (leftExpr, operator, rightExpr) ->
                     let loadExpressionResultOnStack () =
-                        generateMethodBodyInt leftExpr
-                        generateMethodBodyInt rightExpr
+                        generateMethodBody leftExpr
+                        generateMethodBody rightExpr
 
                     match operator with
                     | Ast.Add ->
@@ -80,13 +80,15 @@ type public ClassBuilder(targetType:Type) =
                     match literal with
                     | Ast.Int32Literal (v) ->
                         emitter.LoadConstant(v) |> ignore
+                    | Ast.DoubleLiteral (v) ->
+                        emitter.LoadConstant(v) |> ignore
                     | _ -> failwith "Unknown literal"
                 | Ast.MultiCallExpression (multicall) ->
                     generateMulticallBody(multicall, objType) |> ignore
                 | _ -> failwith "Unknown expression"
 
 
-            generateMethodBodyInt(AstBuilder.build expression)
+            generateMethodBody(AstBuilder.build expression)
             emitter.Return() |> ignore
             emitter.CreateMethod()
 
