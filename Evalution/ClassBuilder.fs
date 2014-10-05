@@ -20,15 +20,10 @@ type public ClassBuilder(targetType:Type) =
             let assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run)
             let moduleBuilder = assemblyBuilder.DefineDynamicModule("EvalutionModule");
             let typeBuilder = moduleBuilder.DefineType("EV" + objType.Name,
-                TypeAttributes.Public |||
-                TypeAttributes.Class |||
-                TypeAttributes.AutoClass |||
-                TypeAttributes.AnsiClass |||
-                TypeAttributes.BeforeFieldInit |||
-                TypeAttributes.AutoLayout,
+                TypeAttributes.Public ||| TypeAttributes.Class ||| TypeAttributes.AutoClass |||
+                TypeAttributes.AnsiClass ||| TypeAttributes.BeforeFieldInit ||| TypeAttributes.AutoLayout,
                 null)
-            typeBuilder.DefineDefaultConstructor(MethodAttributes.Public |||
-                                                    MethodAttributes.SpecialName |||
+            typeBuilder.DefineDefaultConstructor(MethodAttributes.Public ||| MethodAttributes.SpecialName |||
                                                     MethodAttributes.RTSpecialName) |> ignore
             typeBuilder.SetParent(objType)
             typeBuilder
@@ -38,7 +33,8 @@ type public ClassBuilder(targetType:Type) =
 
         let createGetPropertyMethodBuilder(propertyName, propertyType:Type, expression):MethodBuilder =
             let emitter = Emit.BuildMethod(propertyType, Array.empty, typeBuilder, "get_"+propertyName,
-                MethodAttributes.Public ||| MethodAttributes.SpecialName ||| MethodAttributes.HideBySig ||| MethodAttributes.Virtual,
+                MethodAttributes.Public ||| MethodAttributes.SpecialName ||| MethodAttributes.HideBySig |||
+                MethodAttributes.Virtual,
                 CallingConventions.Standard ||| CallingConventions.HasThis)
             
             let rec generateMulticallBody (multicall: Ast.Multicall, thisType: Type) =
