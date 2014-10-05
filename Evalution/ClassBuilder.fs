@@ -80,6 +80,10 @@ type public ClassBuilder(targetType:Type) =
                         emitter.LoadConstant(v) |> ignore
                     | Ast.DoubleLiteral (v) ->
                         emitter.LoadConstant(v) |> ignore
+                    | Ast.TimeSpanLiteral (v) ->
+                        let fromTicksMethod = typeof<TimeSpan>.GetMethod("FromTicks")
+                        emitter.LoadConstant(v.Ticks) |> ignore
+                        emitter.Call(fromTicksMethod) |> ignore
                     | _ -> failwith "Unknown literal"
                 | Ast.MultiCallExpression (multicall) ->
                     generateMulticallBody(multicall, objType) |> ignore
