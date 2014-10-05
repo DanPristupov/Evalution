@@ -4,7 +4,7 @@ type Program = Expression
 and Expression =
     | BinaryExpression of Expression * BinaryOperator * Expression
     | LiteralExpression of Literal
-    | MultiCallExpression of MultiCall
+    | MultiCallExpression of Multicall
 
 and Literal =
     | BoolLiteral of bool
@@ -20,6 +20,6 @@ and BinaryOperator =
 and IdentifierRef =
     | Identifier of string
     
-and MultiCall =
+and Multicall =
     | ThisPropertyCall of IdentifierRef
-    | ObjectPropertyCall of MultiCall * IdentifierRef
+    | ObjectPropertyCall of Multicall * IdentifierRef

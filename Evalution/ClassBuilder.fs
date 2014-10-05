@@ -41,7 +41,7 @@ type public ClassBuilder(targetType:Type) =
                 MethodAttributes.Public ||| MethodAttributes.SpecialName ||| MethodAttributes.HideBySig ||| MethodAttributes.Virtual,
                 CallingConventions.Standard ||| CallingConventions.HasThis)
             
-            let rec generateMulticallBody (multicall: Ast.MultiCall, thisType: Type) =
+            let rec generateMulticallBody (multicall: Ast.Multicall, thisType: Type) =
                 let createPropertyCall (typeProperties : PropertyInfo[], propertyName) =
                     let targetProperty = typeProperties |> Seq.find(fun x -> x.Name = propertyName)
                     let getMethodPropertyInfo = targetProperty.GetGetMethod()
