@@ -73,6 +73,15 @@ type AstBuilderTest() =
         Assert.AreEqual(expectedResult, result)
 
     [<Test>]
+    member x.TestTimeSpanLiteral ()=
+        let result = AstBuilder.build "TimeSpan.FromHours(4)"
+        
+        let expectedResult =
+            Ast.LiteralExpression(Ast.TimeSpanLiteral(TimeSpan.FromHours(4.0)))
+
+        Assert.AreEqual(expectedResult, result)
+
+    [<Test>]
     member x.TestBinaryExpressionInt32DivideDouble ()=
         let result = AstBuilder.build "3/2"
         

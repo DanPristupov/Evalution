@@ -66,6 +66,21 @@ namespace Evalution.CSharpTest
             Assert.AreEqual(3.0, target.DependentValue1);       // "Value1 * 2.0"
             Assert.AreEqual(6.0, target.DependentValue2);       // "DependentValue1 * 2.0"
         }
+
+        [Test]
+        public void GeneralTest_TimeSpan()
+        {
+            var classBuilder = new ClassBuilder<ClassDateTime>()
+                .Setup(x => x.ValueWithExpression1, "TimeSpan.FromHours(4.5)")
+//                .Setup(x => x.ValueWithExpression2, "TimeSpan.FromHours(4.5) + TimeSpan.FromHours(2)")
+                ;
+            var target = classBuilder.BuildObject();
+
+//            target.Value1 = 1.5;
+//            Assert.AreEqual(7.0, target.ValueWithExpression);   // "2.0 + 2.0 * 2.5"
+//            Assert.AreEqual(3.0, target.DependentValue1);       // "Value1 * 2.0"
+//            Assert.AreEqual(6.0, target.DependentValue2);       // "DependentValue1 * 2.0"
+        }
         
         [Test]
         public void GeneralTest_DateTime()
