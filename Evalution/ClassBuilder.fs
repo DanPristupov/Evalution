@@ -57,6 +57,9 @@ type public ClassBuilder(targetType:Type) =
             let rec generateMethodBody (program: Ast.Program) =
                 match program with
                 | Ast.BinaryExpression (leftExpr, operator, rightExpr) ->
+                    // todo: need to handle different types of expression here.
+                    // need to call op_Addition to add TimeSpans...
+                    // probably need to create a matrix of allowed math operations...
                     let loadExpressionResultOnStack () =
                         generateMethodBody leftExpr
                         generateMethodBody rightExpr

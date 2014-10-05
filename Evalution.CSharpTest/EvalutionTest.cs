@@ -72,13 +72,13 @@ namespace Evalution.CSharpTest
         {
             var classBuilder = new ClassBuilder<ClassDateTime>()
                 .Setup(x => x.ValueWithExpression1, "TimeSpan.FromHours(4.5)")
-//                .Setup(x => x.ValueWithExpression2, "TimeSpan.FromHours(4.5) + TimeSpan.FromHours(2)")
+                .Setup(x => x.ValueWithExpression2, "TimeSpan.FromHours(4.5) + TimeSpan.FromHours(2.5)")
                 ;
             var target = classBuilder.BuildObject();
 
 //            target.Value1 = 1.5;
             Assert.AreEqual(TimeSpan.FromHours(4.5), target.ValueWithExpression1);   // "TimeSpan.FromHours(4.5)"
-//            Assert.AreEqual(3.0, target.DependentValue1);       // "Value1 * 2.0"
+            Assert.AreEqual(TimeSpan.FromHours(7), target.ValueWithExpression2);       // "TimeSpan.FromHours(4.5) + TimeSpan.FromHours(2.5)"
 //            Assert.AreEqual(6.0, target.DependentValue2);       // "DependentValue1 * 2.0"
         }
         
