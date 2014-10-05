@@ -4,7 +4,6 @@ type Program = Expression
 and Expression =
     | BinaryExpression of Expression * BinaryOperator * Expression
     | LiteralExpression of Literal
-//    | IdentifierExpression of IdentifierRef // TODO: check and remove
     | MultiCallExpression of MultiCall
 
 and Literal =

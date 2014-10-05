@@ -64,14 +64,15 @@ type public ClassBuilder(targetType:Type) =
                     | Ast.Int32Literal (v) ->
                         emitter.LoadConstant(v) |> ignore
                     | _ -> failwith "Unknown literal"
-//                | Ast.IdentifierExpression (literal) ->
-//                    match literal with
-//                    | Ast.Identifier (ident) ->
-//                        let property = allProperties |> Seq.find(fun x -> x.Name = ident)
-//                        let getMethod = property.GetGetMethod()
-//                        emitter.LoadArgument(uint16 0)
-//                        emitter.CallVirtual(getMethod) |> ignore
-//                    | _ -> failwith "Unknown identifier"
+                | Ast.MultiCallExpression (literal) ->
+                    match literal with
+                    | Ast.ThisPropertyCall (ident) ->
+                        let (Ast.Identifier propertyName) = ident
+                        let property = allProperties |> Seq.find(fun x -> x.Name = propertyName)
+                        let getMethod = property.GetGetMethod()
+                        emitter.LoadArgument(uint16 0)
+                        emitter.CallVirtual(getMethod) |> ignore
+                    | _ -> failwith "Unknown identifier"
                 | _ -> failwith "Unknown expression"
 
 
