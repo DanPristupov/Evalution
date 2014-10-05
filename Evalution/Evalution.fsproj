@@ -40,6 +40,10 @@
     <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>True</Private>
     </Reference>
+    <Reference Include="Piglet">
+      <HintPath>..\packages\Piglet.1.4.0\lib\net40\Piglet.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Sigil">
       <HintPath>..\packages\Sigil.4.2.2\lib\net40\Sigil.dll</HintPath>
       <Private>True</Private>
@@ -49,10 +53,8 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ExpressionAttribute.fs" />
-    <Compile Include="Tokenizer.fs" />
-    <Compile Include="SyntaxTree.fs" />
-    <Compile Include="Evaluator.fs" />
+    <Compile Include="Ast.fs" />
+    <Compile Include="AstBuilder.fs" />
     <Compile Include="ClassBuilder.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />

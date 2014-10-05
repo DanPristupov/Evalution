@@ -35,35 +35,47 @@ type public ClassBuilder(targetType:Type) =
         typeBuilder.SetParent(objType)
 
         let createGetPropertyMethodBuilder(propertyName, propertyType:Type, expression, allProperties):MethodBuilder =
-            let rec generateMethodBodyInt (emitter:Emit, expr, allProperties: PropertyInfo[]) =
-                match expr with
-                | Const(value) -> match value with
-                        | CDouble(v) ->
-                            emitter.LoadConstant(v)
-                        | CInteger(v) ->
-                            emitter.LoadConstant(v)
-                        | _ -> failwith "blah"
-                |Property (name) ->
-                    let property = allProperties |> Seq.find(fun x -> x.Name = name)
-                    let getMethod = property.GetGetMethod()
-                    emitter.LoadArgument(uint16 0)
-                    emitter.CallVirtual(getMethod)
-                |Addition (l, r) ->
-                    generateMethodBodyInt(emitter, l, allProperties)
-                    generateMethodBodyInt(emitter, r, allProperties)
-                    emitter.Add()
-                |Multiplication (l, r) ->
-                    generateMethodBodyInt(emitter, l, allProperties)
-                    generateMethodBodyInt(emitter, r, allProperties)
-                    emitter.Multiply()
-                | _ -> failwith "blah"
-                ()
-
             let emitter = Emit.BuildMethod(propertyType,Array.empty,typeBuilder, "get_"+propertyName, MethodAttributes.Public ||| MethodAttributes.SpecialName ||| MethodAttributes.HideBySig ||| MethodAttributes.Virtual,CallingConventions.Standard ||| CallingConventions.HasThis)
-            let tokenizer = new Tokenizer()
-            let syntaxTree = new SyntaxTree()
 
-            generateMethodBodyInt(emitter, (syntaxTree.Build (tokenizer.Read expression)), allProperties)
+            let rec generateMethodBodyInt (program: Ast.Program, allProperties: PropertyInfo[]) =
+                match program with
+                | Ast.BinaryExpression (leftExpr, operator, rightExpr) ->
+                    let loadExpressionResultOnStack () =
+                        generateMethodBodyInt(leftExpr, allProperties)
+                        generateMethodBodyInt(rightExpr, allProperties)
+                        ()
+
+                    match operator with
+                    | Ast.Add ->
+                        loadExpressionResultOnStack()
+                        emitter.Add() |> ignore
+                    | Ast.Subtract ->
+                        loadExpressionResultOnStack()
+                        emitter.Subtract() |> ignore
+                    | Ast.Multiply ->
+                        loadExpressionResultOnStack()
+                        emitter.Multiply() |> ignore
+                    | Ast.Divide ->
+                        loadExpressionResultOnStack()
+                        emitter.Divide() |> ignore
+                    | _ -> failwith "Unknown Binary operator"
+                | Ast.LiteralExpression (literal) ->
+                    match literal with
+                    | Ast.Int32Literal (v) ->
+                        emitter.LoadConstant(v) |> ignore
+                    | _ -> failwith "Unknown literal"
+                | Ast.IdentifierExpression (literal) ->
+                    match literal with
+                    | Ast.Identifier (ident) ->
+                        let property = allProperties |> Seq.find(fun x -> x.Name = ident)
+                        let getMethod = property.GetGetMethod()
+                        emitter.LoadArgument(uint16 0)
+                        emitter.CallVirtual(getMethod) |> ignore
+                    | _ -> failwith "Unknown identifier"
+                | _ -> failwith "Unknown expression"
+
+
+            generateMethodBodyInt((AstBuilder.build expression), allProperties)
             emitter.Return()
             emitter.CreateMethod()
 
@@ -100,3 +112,4 @@ type public ClassBuilder<'T when 'T: null>() =
 
     member this.BuildObject ():'T = 
         base.BuildObject() :?> 'T
+
