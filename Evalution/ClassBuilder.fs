@@ -54,9 +54,35 @@ type public ClassBuilder(targetType:Type) =
                     let (Ast.Identifier targetPropertyName) = ident
                     createPropertyCall(subPropertyType.GetProperties(), targetPropertyName)
 
+            let rec getMultiCallExpressionType(multicallExpression, objType: Type) =
+                let getPropertyType (typeProperties : PropertyInfo[], propertyName) =
+                    let targetProperty = typeProperties |> Seq.find(fun x -> x.Name = propertyName)
+                    targetProperty.PropertyType
+                match multicallExpression with
+                | Ast.ThisPropertyCall (identifier) ->
+                    let (Ast.Identifier targetPropertyName) = identifier
+                    getPropertyType(targetTypeProperties, targetPropertyName)
+                | Ast.ObjectPropertyCall (prevCall, ident) ->
+                    let subPropertyType = getMultiCallExpressionType(prevCall, objType)
+                    let (Ast.Identifier targetPropertyName) = ident
+                    getPropertyType(subPropertyType.GetProperties(), targetPropertyName)
+
+
+            let rec getExpressionType expression objType=
+                match expression with
+                | Ast.BinaryExpression(el,_, er) -> getExpressionType el objType
+                | Ast.LiteralExpression(literalExpr) ->
+                    match literalExpr with
+                    | Ast.BoolLiteral(_) -> typeof<bool>
+                    | Ast.Int32Literal(_) -> typeof<int>
+                    | Ast.DoubleLiteral(_) -> typeof<float>
+                    | Ast.TimeSpanLiteral(_) -> typeof<TimeSpan>
+                | Ast.MultiCallExpression(multicallExpr) -> getMultiCallExpressionType(multicallExpr, objType)
+
             let rec generateMethodBody (program: Ast.Program) =
                 match program with
                 | Ast.BinaryExpression (leftExpr, operator, rightExpr) ->
+                    let leftType = getExpressionType leftExpr objType
                     // todo: need to handle different types of expression here.
                     // need to call op_Addition to add TimeSpans...
                     // probably need to create a matrix of allowed math operations...
@@ -67,7 +93,11 @@ type public ClassBuilder(targetType:Type) =
                     match operator with
                     | Ast.Add ->
                         loadExpressionResultOnStack()
-                        emitter.Add() |> ignore
+                        if leftType = typeof<TimeSpan> then
+                            let plusMethod = typeof<TimeSpan>.GetMethod("op_Addition")
+                            emitter.Call(plusMethod) |> ignore
+                        else
+                            emitter.Add() |> ignore
                     | Ast.Subtract ->
                         loadExpressionResultOnStack()
                         emitter.Subtract() |> ignore
