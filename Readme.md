@@ -1,8 +1,8 @@
 ##Evalution
 
-Evalution is an evaluation library which allows to inject math expressions to the property in runtime.
+Evalution is an evaluation library which allows to inject math expressions to a property in runtime.
 
-Evalution is not an expression interpretator. It's a jit-compiler. It parses the expression, build the abstract syntax tree and then generates the IL code. The generated code is as fast as a native .Net code.
+Evalution is not an expression interpretator. It's a jit-compiler. It parses an expression, builds abstract syntax tree and then generates the IL code. The generated code is as fast as a native .Net code.
 
 Currently Evalution supports Int32 and Double types. TimeSpan/DateTime and string operations will be implemented soon.
 
@@ -10,6 +10,7 @@ Evalution is written in F# (only because I want to learn the language :)).
 
 Example:
 
+```C#
     [Test]
     public void GeneralTest_Double()
     {
@@ -24,10 +25,11 @@ Example:
         Assert.AreEqual(3.0, target.DependentValue1);       // "Value1 * 2.0"
         Assert.AreEqual(6.0, target.DependentValue2);       // "DependentValue1 * 2.0"
     }
-
+```
 
 There's also a non-generic API:
 
+```C#
     [Test]
     public void GeneralTest_NonGeneric()
     {
@@ -42,3 +44,4 @@ There's also a non-generic API:
         Assert.AreEqual(8,  target.DependentValue1);        // "Value1*2"
         Assert.AreEqual(16, target.DependentValue2);        // "DependentValue1*2"
     }
+```
