@@ -90,17 +90,26 @@ type public ClassBuilder(targetType:Type) =
                         generateMethodBody leftExpr
                         generateMethodBody rightExpr
 
+                    let isPrimitiveType t =
+                        match t with
+                        | (x) when x = typeof<int> or x = typeof<float> -> true
+                        | _ -> false 
+
                     match operator with
                     | Ast.Add ->
                         loadExpressionResultOnStack()
-                        if leftType = typeof<TimeSpan> then
-                            let plusMethod = typeof<TimeSpan>.GetMethod("op_Addition")
-                            emitter.Call(plusMethod) |> ignore
-                        else
+                        if isPrimitiveType leftType then
                             emitter.Add() |> ignore
+                        else
+                            let addMethod = leftType.GetMethod("op_Addition")
+                            emitter.Call(addMethod) |> ignore
                     | Ast.Subtract ->
                         loadExpressionResultOnStack()
-                        emitter.Subtract() |> ignore
+                        if isPrimitiveType leftType then
+                            emitter.Subtract() |> ignore
+                        else
+                            let subtractMethod = leftType.GetMethod("op_Subtraction")
+                            emitter.Call(subtractMethod) |> ignore
                     | Ast.Multiply ->
                         loadExpressionResultOnStack()
                         emitter.Multiply() |> ignore
