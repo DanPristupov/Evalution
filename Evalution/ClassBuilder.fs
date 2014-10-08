@@ -83,6 +83,7 @@ type public ClassBuilder(targetType:Type) =
                 match program with
                 | Ast.BinaryExpression (leftExpr, operator, rightExpr) ->
                     let leftType = getExpressionType leftExpr objType
+                    let rightType = getExpressionType rightExpr objType
                     // todo: need to handle different types of expression here.
                     // need to call op_Addition to add TimeSpans...
                     // probably need to create a matrix of allowed math operations...
@@ -101,14 +102,14 @@ type public ClassBuilder(targetType:Type) =
                         if isPrimitiveType leftType then
                             emitter.Add() |> ignore
                         else
-                            let addMethod = leftType.GetMethod("op_Addition")
+                            let addMethod = leftType.GetMethod("op_Addition", [|leftType; rightType|])
                             emitter.Call(addMethod) |> ignore
                     | Ast.Subtract ->
                         loadExpressionResultOnStack()
                         if isPrimitiveType leftType then
                             emitter.Subtract() |> ignore
                         else
-                            let subtractMethod = leftType.GetMethod("op_Subtraction")
+                            let subtractMethod = leftType.GetMethod("op_Subtraction", [|leftType; rightType|])
                             emitter.Call(subtractMethod) |> ignore
                     | Ast.Multiply ->
                         loadExpressionResultOnStack()

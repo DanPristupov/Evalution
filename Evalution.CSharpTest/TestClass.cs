@@ -34,7 +34,7 @@ namespace Evalution.CSharpTest
         public DateTime End { get; set; }
         public TimeSpan Duration { get; set; }
 
-        public virtual TimeSpan ValueWithExpression1 { get { return Duration + Duration; } }
+        public virtual TimeSpan ValueWithExpression1 { get; set; }
 
         public virtual TimeSpan ValueWithExpression2 { get; set; }
 

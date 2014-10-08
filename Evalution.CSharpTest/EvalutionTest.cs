@@ -82,26 +82,29 @@ namespace Evalution.CSharpTest
             Assert.AreEqual(TimeSpan.FromHours(4.0), target.DependentValue3);       // "ValueWithExpression2 - TimeSpan.FromHours(3)"
 //            Assert.AreEqual(6.0, target.DependentValue2);       // "DependentValue1 * 2.0"
         }
-        
+
         [Test]
-        public void GeneralTest_DateTime()
+        public void GeneralTest_TimeSpanDateTime()
         {
             var start = new DateTime(2000, 1, 1);
             var classBuilder = new ClassBuilder<ClassDateTime>()
-                .Setup(x => x.ValueWithExpression1, "TimeSpan.FromHours(4) + TimeSpan.FromHours(1)")
-                .Setup(x => x.ValueWithExpression2, "new DateTime(2014,1,1) + TimeSpan.FromHours(1)")
+                .Setup(x => x.ValueWithExpression1, "TimeSpan.FromHours(4.0) + TimeSpan.FromHours(1.0)")
                 .Setup(x => x.DependentValue1, "Start + Duration")
-                .Setup(x => x.DependentValue2, "Start + TimeSpan.FromHours(4)")
+                .Setup(x => x.DependentValue2, "Start + TimeSpan.FromHours(4.0)")
                 .Setup(x => x.DependentValue3, "End - Start");
             var target = classBuilder.BuildObject();
 
             target.Start = start;
-            target.End = start.AddDays(10);
-            Assert.AreEqual(3.0, target.ValueWithExpression1);  // "TimeSpan.FromHours(4) + TimeSpan.FromHours(1)"
-            Assert.AreEqual(3.0, target.ValueWithExpression2);  // "new DateTime(2014,1,1) + TimeSpan.FromHours(1)"
-            Assert.AreEqual(3.0, target.DependentValue1);       // "Start + Duration"
-            Assert.AreEqual(7.0, target.DependentValue2);       // "Start + TimeSpan.FromHours(4)"
-            Assert.AreEqual(7.0, target.DependentValue3);       // "End - Start"
+            target.End = start.AddHours(10);
+            target.Duration = TimeSpan.FromDays(2);
+            Assert.AreEqual(TimeSpan.FromHours(5.0),
+                target.ValueWithExpression1);  // "TimeSpan.FromHours(4) + TimeSpan.FromHours(1)"
+            Assert.AreEqual(new DateTime(2000, 1, 3),
+                target.DependentValue1);       // "Start + Duration"
+            Assert.AreEqual(new DateTime(2000, 1, 1, 4 , 0 , 0),
+                target.DependentValue2);       // "Start + TimeSpan.FromHours(4)"
+            Assert.AreEqual(TimeSpan.FromHours(10),
+                target.DependentValue3);       // "End - Start"
         }
 
         [Test]
