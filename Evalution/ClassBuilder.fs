@@ -54,20 +54,63 @@ type public ClassBuilder(targetType:Type) =
                     let (Ast.Identifier targetPropertyName) = ident
                     createPropertyCall(subPropertyType.GetProperties(), targetPropertyName)
 
+            let rec getMultiCallExpressionType(multicallExpression, objType: Type) =
+                let getPropertyType (typeProperties : PropertyInfo[], propertyName) =
+                    let targetProperty = typeProperties |> Seq.find(fun x -> x.Name = propertyName)
+                    targetProperty.PropertyType
+                match multicallExpression with
+                | Ast.ThisPropertyCall (identifier) ->
+                    let (Ast.Identifier targetPropertyName) = identifier
+                    getPropertyType(targetTypeProperties, targetPropertyName)
+                | Ast.ObjectPropertyCall (prevCall, ident) ->
+                    let subPropertyType = getMultiCallExpressionType(prevCall, objType)
+                    let (Ast.Identifier targetPropertyName) = ident
+                    getPropertyType(subPropertyType.GetProperties(), targetPropertyName)
+
+
+            let rec getExpressionType expression objType=
+                match expression with
+                | Ast.BinaryExpression(el,_, er) -> getExpressionType el objType
+                | Ast.LiteralExpression(literalExpr) ->
+                    match literalExpr with
+                    | Ast.BoolLiteral(_) -> typeof<bool>
+                    | Ast.Int32Literal(_) -> typeof<int>
+                    | Ast.DoubleLiteral(_) -> typeof<float>
+                    | Ast.TimeSpanLiteral(_) -> typeof<TimeSpan>
+                | Ast.MultiCallExpression(multicallExpr) -> getMultiCallExpressionType(multicallExpr, objType)
+
             let rec generateMethodBody (program: Ast.Program) =
                 match program with
                 | Ast.BinaryExpression (leftExpr, operator, rightExpr) ->
+                    let leftType = getExpressionType leftExpr objType
+                    let rightType = getExpressionType rightExpr objType
+                    // todo: need to handle different types of expression here.
+                    // need to call op_Addition to add TimeSpans...
+                    // probably need to create a matrix of allowed math operations...
                     let loadExpressionResultOnStack () =
                         generateMethodBody leftExpr
                         generateMethodBody rightExpr
 
+                    let isPrimitiveType t =
+                        match t with
+                        | (x) when x = typeof<int> or x = typeof<float> -> true
+                        | _ -> false 
+
                     match operator with
                     | Ast.Add ->
                         loadExpressionResultOnStack()
-                        emitter.Add() |> ignore
+                        if isPrimitiveType leftType then
+                            emitter.Add() |> ignore
+                        else
+                            let addMethod = leftType.GetMethod("op_Addition", [|leftType; rightType|])
+                            emitter.Call(addMethod) |> ignore
                     | Ast.Subtract ->
                         loadExpressionResultOnStack()
-                        emitter.Subtract() |> ignore
+                        if isPrimitiveType leftType then
+                            emitter.Subtract() |> ignore
+                        else
+                            let subtractMethod = leftType.GetMethod("op_Subtraction", [|leftType; rightType|])
+                            emitter.Call(subtractMethod) |> ignore
                     | Ast.Multiply ->
                         loadExpressionResultOnStack()
                         emitter.Multiply() |> ignore
@@ -80,6 +123,10 @@ type public ClassBuilder(targetType:Type) =
                         emitter.LoadConstant(v) |> ignore
                     | Ast.DoubleLiteral (v) ->
                         emitter.LoadConstant(v) |> ignore
+                    | Ast.TimeSpanLiteral (v) ->
+                        let fromTicksMethod = typeof<TimeSpan>.GetMethod("FromTicks")
+                        emitter.LoadConstant(v.Ticks) |> ignore
+                        emitter.Call(fromTicksMethod) |> ignore
                     | _ -> failwith "Unknown literal"
                 | Ast.MultiCallExpression (multicall) ->
                     generateMulticallBody(multicall, objType) |> ignore

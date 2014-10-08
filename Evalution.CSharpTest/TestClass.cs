@@ -36,7 +36,7 @@ namespace Evalution.CSharpTest
 
         public virtual TimeSpan ValueWithExpression1 { get; set; }
 
-        public virtual DateTime ValueWithExpression2 { get; set; }
+        public virtual TimeSpan ValueWithExpression2 { get; set; }
 
         public virtual DateTime DependentValue1 { get; set; }
 

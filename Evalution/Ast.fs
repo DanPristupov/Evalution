@@ -1,4 +1,7 @@
 ﻿module Evalution.Ast
+
+open System
+
 type Program = Expression
 
 and Expression =
@@ -10,6 +13,7 @@ and Literal =
     | BoolLiteral of bool
     | Int32Literal of int
     | DoubleLiteral of float
+    | TimeSpanLiteral of TimeSpan // TODO: make of long (ticks)
 
 and BinaryOperator =
     | Add
