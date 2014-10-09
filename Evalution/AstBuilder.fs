@@ -22,6 +22,8 @@
         let asterisk = configurator.CreateTerminal(@"\*")
         let forwardSlash = configurator.CreateTerminal(@"/")
         let dot = configurator.CreateTerminal(@"\.")
+        let openSquare = configurator.CreateTerminal(@"\[")
+        let closeSquare = configurator.CreateTerminal(@"\]")
         let identifier = configurator.CreateTerminal(@"[a-zA-Z_][a-zA-Z_0-9]*", fun x -> box(Ast.Identifier(x)))
 
         configurator.LeftAssociative(plus) |> ignore
@@ -48,6 +50,7 @@
         expressionSpec.AddProduction(timeSpanLiteral)
             .SetReduceFunction(fun x -> box (Ast.LiteralExpression(x.[0]:?>Ast.Literal ) ))
 
+        // Multicall expression
         expressionSpec.AddProduction(multiCallExpressionSpec)
             .SetReduceFunction(fun x -> box (Ast.MultiCallExpression(x.[0] :?> Ast.Multicall)) )
 
@@ -55,6 +58,13 @@
             .SetReduceFunction(fun x -> box (Ast.ThisPropertyCall(x.[0] :?> Ast.IdentifierRef)) )
         multiCallExpressionSpec.AddProduction(multiCallExpressionSpec, dot, identifier)
             .SetReduceFunction(fun x -> box (Ast.ObjectPropertyCall(x.[0] :?>Ast.Multicall, x.[2] :?>Ast.IdentifierRef)) )
+
+        multiCallExpressionSpec.AddProduction(multiCallExpressionSpec, openSquare, expressionSpec, closeSquare)
+            .SetReduceFunction(fun x -> box (Ast.ArrayElementCall(
+            x.[0] :?> Ast.Multicall,
+            x.[2] :?> Ast.Expression
+            )) )
+
 
         let parser = configurator.CreateParser()
         let result = parser.Parse(input)

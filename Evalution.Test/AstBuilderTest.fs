@@ -151,3 +151,37 @@ type AstBuilderTest() =
             )
 
         Assert.AreEqual(expectedResult, result)
+
+    [<Test>]
+    member x.TestArrayExpression ()=
+        let result = AstBuilder.build "array[12].Item"
+        
+        let expectedResult =
+            Ast.MultiCallExpression(
+                Ast.ObjectPropertyCall(
+                    Ast.ArrayElementCall(
+                        Ast.ThisPropertyCall(Ast.Identifier("array")),
+                        Ast.LiteralExpression(Ast.Int32Literal(12))
+                    ),
+                    Ast.Identifier("Item")
+                )
+            )
+
+        Assert.AreEqual(expectedResult, result)
+
+    [<Test>]
+    member x.TestArrayExpression_Nested ()=
+        let result = AstBuilder.build "array[12][3]"
+        
+        let expectedResult =
+            Ast.MultiCallExpression(
+                Ast.ArrayElementCall(
+                    Ast.ArrayElementCall(
+                        Ast.ThisPropertyCall(Ast.Identifier("array")),
+                        Ast.LiteralExpression(Ast.Int32Literal(12))
+                    ),
+                    Ast.LiteralExpression(Ast.Int32Literal(3))
+                )
+            )
+
+        Assert.AreEqual(expectedResult, result)

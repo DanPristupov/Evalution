@@ -27,3 +27,4 @@ and IdentifierRef =
 and Multicall =
     | ThisPropertyCall of IdentifierRef
     | ObjectPropertyCall of Multicall * IdentifierRef
+    | ArrayElementCall of Multicall * Expression
