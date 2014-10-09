@@ -45,6 +45,21 @@ namespace Evalution.CSharpTest
         public virtual TimeSpan DependentValue3 { get; set; }
     }
 
+    public class ClassArray
+    {
+        public int[] IntValues { get; set; }
+        public ClassInt32[] ComplexObjects { get; set; }
+
+        public virtual int DependentValue1 { get; set; }
+
+        public virtual int DependentValue2 { get; set; }
+
+        public virtual int DependentValue3 { get; set; }
+
+        public virtual int DependentValue4 { get; set; }
+
+    }
+
     public class ComplexObject
     {
         public ClassInt32 Child { get; set; }

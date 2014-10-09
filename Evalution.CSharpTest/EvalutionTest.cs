@@ -100,6 +100,17 @@ namespace Evalution.CSharpTest
         }
 
         [Test]
+        public void GeneralTest_DoubleAndIntConversions()
+        {
+            var classBuilder = new ClassBuilder<ClassDouble>()
+                .Setup(x => x.ValueWithExpression, "2 + 2.0")
+                ;
+            
+            var target = classBuilder.BuildObject();
+            Assert.Fail("TODO");
+        }
+
+        [Test]
         public void GeneralTest_TimeSpan()
         {
             var classBuilder = new ClassBuilder<ClassDateTime>()
@@ -184,6 +195,33 @@ namespace Evalution.CSharpTest
             Assert.AreEqual(14.0, target.DependentValue1);   // "Child.DependentValue1*2"
         }
 
+        [Test]
+        public void GeneralTest_Arrays()
+        {
+            var classBuilder = new ClassBuilder<ClassArray>()
+                .Setup(x => x.DependentValue1, "IntValues[2] * 2")
+                .Setup(x => x.DependentValue2, "IntValues[1] + IntValues[2]")
+                .Setup(x => x.DependentValue3, "ComplexObjects[1].Value1 + 1")
+                .Setup(x => x.DependentValue4, "ComplexObjects[1].Value1 + IntValues[1]");
+            
+            var target = classBuilder.BuildObject();
+            target.IntValues = new[] {1, 2, 3};
+            target.ComplexObjects = new[]
+            {
+                new ClassInt32() {Value1 = 4},
+                new ClassInt32() {Value1 = 5},
+            };
 
+            Assert.AreEqual(6, target.DependentValue1); // "IntValues[2] * 2"
+            Assert.AreEqual(5, target.DependentValue2); // "IntValues[1] + IntValues[2]"
+            Assert.AreEqual(6, target.DependentValue3); // "ComplexObjects[1].Value1 + 1"
+            Assert.AreEqual(7, target.DependentValue4); // "ComplexObjects[1].Value1 + IntValues[1]"
+        }
+
+        [Test]
+        public void GeneralTest_Dictionaries()
+        {
+            Assert.Fail("TODO");
+        }
     }
 }
