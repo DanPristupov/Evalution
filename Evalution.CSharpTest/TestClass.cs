@@ -48,16 +48,15 @@ namespace Evalution.CSharpTest
     public class ClassArray
     {
         public int[] IntValues { get; set; }
-        public ClassInt32[] ComplexObjects { get; set; }
+        public ClassDateTime[] ComplexObjects { get; set; }
 
         public virtual int DependentValue1 { get; set; }
 
         public virtual int DependentValue2 { get; set; }
 
-        public virtual int DependentValue3 { get; set; }
+        public virtual TimeSpan DependentValue3 { get; set; }
 
-        public virtual int DependentValue4 { get; set; }
-
+        public virtual DateTime DependentValue4 { get; set; }
     }
 
     public class ComplexObject
