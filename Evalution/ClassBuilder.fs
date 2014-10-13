@@ -37,38 +37,23 @@ type public ClassBuilder(targetType:Type) =
                 MethodAttributes.Virtual,
                 CallingConventions.Standard ||| CallingConventions.HasThis)
             
-            let rec generateMulticallBody (multicall: Ast.Multicall, thisType: Type) =
-                let createPropertyCall (typeProperties : PropertyInfo[], propertyName) =
-                    let targetProperty = typeProperties |> Seq.find(fun x -> x.Name = propertyName)
-                    let getMethodPropertyInfo = targetProperty.GetGetMethod()
-                    emitter.CallVirtual(getMethodPropertyInfo) |> ignore
-                    targetProperty.PropertyType
-
-                match multicall with
-                | Ast.ThisPropertyCall (identifier) ->
-                    let (Ast.Identifier targetPropertyName) = identifier
-                    emitter.LoadArgument(uint16 0) |> ignore    // Emit: load this reference onto stack
-                    createPropertyCall(targetTypeProperties, targetPropertyName)
-                | Ast.ObjectPropertyCall (prevCall, ident) ->
-                    let subPropertyType = generateMulticallBody(prevCall, thisType)
-                    let (Ast.Identifier targetPropertyName) = ident
-                    createPropertyCall(subPropertyType.GetProperties(), targetPropertyName)
-
-            let rec getMultiCallExpressionType(multicallExpression, objType: Type) =
-                let getPropertyType (typeProperties : PropertyInfo[], propertyName) =
-                    let targetProperty = typeProperties |> Seq.find(fun x -> x.Name = propertyName)
-                    targetProperty.PropertyType
-                match multicallExpression with
-                | Ast.ThisPropertyCall (identifier) ->
-                    let (Ast.Identifier targetPropertyName) = identifier
-                    getPropertyType(targetTypeProperties, targetPropertyName)
-                | Ast.ObjectPropertyCall (prevCall, ident) ->
-                    let subPropertyType = getMultiCallExpressionType(prevCall, objType)
-                    let (Ast.Identifier targetPropertyName) = ident
-                    getPropertyType(subPropertyType.GetProperties(), targetPropertyName)
-
-
             let rec getExpressionType expression objType=
+                let rec getMultiCallExpressionType(multicallExpression, objType: Type) =
+                    let getPropertyType (typeProperties : PropertyInfo[], propertyName) =
+                        let targetProperty = typeProperties |> Seq.find(fun x -> x.Name = propertyName)
+                        targetProperty.PropertyType
+                    match multicallExpression with
+                    | Ast.ThisPropertyCall (identifier) ->
+                        let (Ast.Identifier targetPropertyName) = identifier
+                        getPropertyType(targetTypeProperties, targetPropertyName)
+                    | Ast.ObjectPropertyCall (prevCall, ident) ->
+                        let subPropertyType = getMultiCallExpressionType(prevCall, objType)
+                        let (Ast.Identifier targetPropertyName) = ident
+                        getPropertyType(subPropertyType.GetProperties(), targetPropertyName)
+                    | Ast.ArrayElementCall (prevCall, _) ->
+                        let subPropertyType = getMultiCallExpressionType(prevCall, objType)
+                        subPropertyType.GetElementType()
+
                 match expression with
                 | Ast.BinaryExpression(el,_, er) -> getExpressionType el objType
                 | Ast.LiteralExpression(literalExpr) ->
@@ -80,6 +65,29 @@ type public ClassBuilder(targetType:Type) =
                 | Ast.MultiCallExpression(multicallExpr) -> getMultiCallExpressionType(multicallExpr, objType)
 
             let rec generateMethodBody (program: Ast.Program) =
+                let rec generateMulticallBody (multicall: Ast.Multicall, thisType: Type) =
+                    let createPropertyCall (typeProperties : PropertyInfo[], propertyName) =
+                        let targetProperty = typeProperties |> Seq.find(fun x -> x.Name = propertyName)
+                        let getMethodPropertyInfo = targetProperty.GetGetMethod()
+                        emitter.CallVirtual(getMethodPropertyInfo) |> ignore
+                        targetProperty.PropertyType
+
+                    match multicall with
+                    | Ast.ThisPropertyCall (identifier) ->
+                        let (Ast.Identifier targetPropertyName) = identifier
+                        emitter.LoadArgument(uint16 0) |> ignore    // Emit: load 'this' reference onto stack
+                        createPropertyCall(targetTypeProperties, targetPropertyName)
+                    | Ast.ObjectPropertyCall (prevCall, ident) ->
+                        let subPropertyType = generateMulticallBody(prevCall, thisType)
+                        let (Ast.Identifier targetPropertyName) = ident
+                        createPropertyCall(subPropertyType.GetProperties(), targetPropertyName)
+                    | Ast.ArrayElementCall (prevCall, expr) ->
+                        let subPropertyType = generateMulticallBody(prevCall, thisType)
+                        generateMethodBody expr
+                        let elementType = subPropertyType.GetElementType()
+                        emitter.LoadElement(elementType) |> ignore
+                        elementType
+
                 match program with
                 | Ast.BinaryExpression (leftExpr, operator, rightExpr) ->
                     let leftType = getExpressionType leftExpr objType

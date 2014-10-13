@@ -202,8 +202,9 @@ namespace Evalution.CSharpTest
                 .Setup(x => x.DependentValue1, "IntValues[2] * 2")
                 .Setup(x => x.DependentValue2, "IntValues[1] + IntValues[2]")
                 .Setup(x => x.DependentValue3, "ComplexObjects[1].Value1 + 1")
-                .Setup(x => x.DependentValue4, "ComplexObjects[1].Value1 + IntValues[1]");
-            
+                .Setup(x => x.DependentValue4, "ComplexObjects[1].Value1 + IntValues[1]")
+                ;
+
             var target = classBuilder.BuildObject();
             target.IntValues = new[] {1, 2, 3};
             target.ComplexObjects = new[]
