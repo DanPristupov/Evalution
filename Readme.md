@@ -1,8 +1,8 @@
 ##Evalution
 
-Evalution is an evaluation library which allows to inject math expressions to a property in runtime.
+Evalution is an evaluation library which allows to inject math expressions in a property during runtime.
 
-Evalution is not an expression interpretator. It's a jit-compiler. It parses an expression, builds abstract syntax tree and then generates the IL code. The generated code is as fast as a native .Net code.
+Evalution is not an expression interpretator. It's a JIT-compiler. It parses an expression, builds abstract syntax tree and then generates the IL code. The generated code is as fast as a native .Net code.
 
 Currently Evalution supports Int32 and Double types. TimeSpan/DateTime and string operations will be implemented soon.
 
