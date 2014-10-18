@@ -160,7 +160,7 @@ type public ClassBuilder(targetType:Type) =
         propertyExpressions.Add({ Property= propertyInfo; Expr = expression } )
         this
 
-    member this.BuildObject ():obj =
+    member this.BuildObject ([<ParamArray>] parameters: Object[]):obj =
         let resultType = createType targetType
         Activator.CreateInstance(resultType)
 
@@ -171,6 +171,6 @@ type public ClassBuilder<'T when 'T: null>() =
         let body = property.Body :?> System.Linq.Expressions.MemberExpression
         base.Setup(body.Member.Name, expression) :?> ClassBuilder<'T>
 
-    member this.BuildObject ():'T = 
-        base.BuildObject() :?> 'T
+    member this.BuildObject ([<ParamArray>] parameters: Object[]):'T = 
+        base.BuildObject(parameters) :?> 'T
 

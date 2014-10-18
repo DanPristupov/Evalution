@@ -226,5 +226,26 @@ namespace Evalution.CSharpTest
         {
             Assert.Fail("TODO");
         }
+
+        [Test]
+        public void GeneralTest_DefaultConstructor()
+        {
+            var classBuilder = new ClassBuilder<ClassDateTime>();
+            var target = classBuilder.BuildObject();
+            Assert.AreEqual(new DateTime(), target.Start);
+            Assert.AreEqual(new DateTime(), target.End);
+            Assert.AreEqual(TimeSpan.Zero, target.Duration);
+        }
+        [Test]
+        public void GeneralTest_CustomConstructor()
+        {
+            var classBuilder = new ClassBuilder<ClassDateTime>();
+            var target = classBuilder.BuildObject(new DateTime(2000, 1, 1), new DateTime(2000, 2, 1), TimeSpan.FromDays(2));
+            Assert.AreEqual(new DateTime(2000, 1, 1), target.Start);
+            Assert.AreEqual(new DateTime(2000, 2, 1), target.End);
+            Assert.AreEqual(TimeSpan.FromDays(2), target.Duration);
+        }
+
+
     }
 }

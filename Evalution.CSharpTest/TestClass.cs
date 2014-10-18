@@ -30,6 +30,17 @@ namespace Evalution.CSharpTest
     }
     public class ClassDateTime
     {
+        public ClassDateTime()
+        {
+        }
+
+        public ClassDateTime(DateTime start, DateTime end, TimeSpan duration)
+        {
+            this.Start = start;
+            this.End = end;
+            this.Duration = duration;
+        }
+
         public DateTime Start { get; set; }
         public DateTime End { get; set; }
         public TimeSpan Duration { get; set; }
