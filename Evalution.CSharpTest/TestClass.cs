@@ -28,19 +28,9 @@ namespace Evalution.CSharpTest
 
         public virtual double DependentValue2 { get; set; }
     }
+
     public class ClassDateTime
     {
-        public ClassDateTime()
-        {
-        }
-
-        public ClassDateTime(DateTime start, DateTime end, TimeSpan duration)
-        {
-            this.Start = start;
-            this.End = end;
-            this.Duration = duration;
-        }
-
         public DateTime Start { get; set; }
         public DateTime End { get; set; }
         public TimeSpan Duration { get; set; }
@@ -81,4 +71,27 @@ namespace Evalution.CSharpTest
         public virtual int DependentValue2 { get; set; }
     }
 
+    public class ClassWithConstructor
+    {
+        public ClassWithConstructor()
+        {
+            this.DefaultContstructorCalled = true;
+        }
+
+        public ClassWithConstructor(int param)
+        {
+            this.IntConstructurCalled = true;
+        }
+
+        public ClassWithConstructor(int param1, int param2)
+        {
+            this.DoubleIntConstructurCalled = true;
+        }
+
+        public bool DoubleIntConstructurCalled { get; set; }
+
+        public bool IntConstructurCalled { get; set; }
+
+        public bool DefaultContstructorCalled { get; set; }
+    }
 }

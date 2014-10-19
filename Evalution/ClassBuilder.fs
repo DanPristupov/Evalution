@@ -26,10 +26,14 @@ type public ClassBuilder(targetType:Type) =
 
             let createProxyConstructors ()= 
                 let createProxyConstructor (ctor:ConstructorInfo) =
-                    let emit = Emit.BuildConstructor(Type.EmptyTypes, typeBuilder, MethodAttributes.Public, CallingConventions.HasThis)
                     let params = ctor.GetParameters()
+                    let paramTypes = params |> Seq.map (fun x -> x.ParameterType) |> Seq.toArray
+                    let emit = Emit.BuildConstructor(paramTypes, typeBuilder, MethodAttributes.Public, CallingConventions.HasThis)
                     emit.LoadArgument(uint16 0) |> ignore
+                    let mutable i = 1
                     for param in params do
+                        emit.LoadArgument(uint16 i) |> ignore
+                        i <- i + 1
                         ()
                     emit.Call(ctor) |> ignore
                     emit.Return()
