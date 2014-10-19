@@ -23,9 +23,25 @@ type public ClassBuilder(targetType:Type) =
                 TypeAttributes.Public ||| TypeAttributes.Class ||| TypeAttributes.AutoClass |||
                 TypeAttributes.AnsiClass ||| TypeAttributes.BeforeFieldInit ||| TypeAttributes.AutoLayout,
                 null)
-            typeBuilder.DefineDefaultConstructor(MethodAttributes.Public ||| MethodAttributes.SpecialName |||
-                                                    MethodAttributes.RTSpecialName) |> ignore
+
+            let createProxyConstructors ()= 
+                let createProxyConstructor (ctor:ConstructorInfo) =
+                    let emit = Emit.BuildConstructor(Type.EmptyTypes, typeBuilder, MethodAttributes.Public, CallingConventions.HasThis)
+                    let params = ctor.GetParameters()
+                    emit.LoadArgument(uint16 0) |> ignore
+                    for param in params do
+                        ()
+                    emit.Call(ctor) |> ignore
+                    emit.Return()
+                    emit.CreateConstructor()
+                    ()
+                for ctor in objType.GetConstructors() do
+                    createProxyConstructor ctor
+                ()
+
             typeBuilder.SetParent(objType)
+            createProxyConstructors()
+
             typeBuilder
 
         let typeBuilder = createTypeBuilder objType
@@ -162,7 +178,7 @@ type public ClassBuilder(targetType:Type) =
 
     member this.BuildObject ([<ParamArray>] parameters: Object[]):obj =
         let resultType = createType targetType
-        Activator.CreateInstance(resultType)
+        Activator.CreateInstance(resultType, parameters)
 
 type public ClassBuilder<'T when 'T: null>() =
     inherit ClassBuilder(typeof<'T>)
