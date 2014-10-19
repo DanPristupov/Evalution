@@ -226,5 +226,26 @@ namespace Evalution.CSharpTest
         {
             Assert.Fail("TODO");
         }
+
+        [Test]
+        public void GeneralTest_ConstructorTest()
+        {
+            var classBuilder = new ClassBuilder<ClassWithConstructor>();
+            
+            var target1 = classBuilder.BuildObject();
+            Assert.True(target1.DefaultContstructorCalled);
+            Assert.False(target1.IntConstructurCalled);
+            Assert.False(target1.DoubleIntConstructurCalled);
+            
+            var target2 = classBuilder.BuildObject(1);
+            Assert.False(target2.DefaultContstructorCalled);
+            Assert.True(target2.IntConstructurCalled);
+            Assert.False(target2.DoubleIntConstructurCalled);
+            
+            var target3 = classBuilder.BuildObject(1, 2);
+            Assert.False(target3.DefaultContstructorCalled);
+            Assert.False(target3.IntConstructurCalled);
+            Assert.True(target3.DoubleIntConstructurCalled);
+        }
     }
 }

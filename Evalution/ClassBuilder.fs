@@ -23,9 +23,29 @@ type public ClassBuilder(targetType:Type) =
                 TypeAttributes.Public ||| TypeAttributes.Class ||| TypeAttributes.AutoClass |||
                 TypeAttributes.AnsiClass ||| TypeAttributes.BeforeFieldInit ||| TypeAttributes.AutoLayout,
                 null)
-            typeBuilder.DefineDefaultConstructor(MethodAttributes.Public ||| MethodAttributes.SpecialName |||
-                                                    MethodAttributes.RTSpecialName) |> ignore
+
+            let createProxyConstructors ()= 
+                let createProxyConstructor (ctor:ConstructorInfo) =
+                    let params = ctor.GetParameters()
+                    let paramTypes = params |> Seq.map (fun x -> x.ParameterType) |> Seq.toArray
+                    let emit = Emit.BuildConstructor(paramTypes, typeBuilder, MethodAttributes.Public, CallingConventions.HasThis)
+                    emit.LoadArgument(uint16 0) |> ignore
+                    let mutable i = 1
+                    for param in params do
+                        emit.LoadArgument(uint16 i) |> ignore
+                        i <- i + 1
+                        ()
+                    emit.Call(ctor) |> ignore
+                    emit.Return()
+                    emit.CreateConstructor()
+                    ()
+                for ctor in objType.GetConstructors() do
+                    createProxyConstructor ctor
+                ()
+
             typeBuilder.SetParent(objType)
+            createProxyConstructors()
+
             typeBuilder
 
         let typeBuilder = createTypeBuilder objType
@@ -160,9 +180,9 @@ type public ClassBuilder(targetType:Type) =
         propertyExpressions.Add({ Property= propertyInfo; Expr = expression } )
         this
 
-    member this.BuildObject ():obj =
+    member this.BuildObject ([<ParamArray>] parameters: Object[]):obj =
         let resultType = createType targetType
-        Activator.CreateInstance(resultType)
+        Activator.CreateInstance(resultType, parameters)
 
 type public ClassBuilder<'T when 'T: null>() =
     inherit ClassBuilder(typeof<'T>)
@@ -171,6 +191,6 @@ type public ClassBuilder<'T when 'T: null>() =
         let body = property.Body :?> System.Linq.Expressions.MemberExpression
         base.Setup(body.Member.Name, expression) :?> ClassBuilder<'T>
 
-    member this.BuildObject ():'T = 
-        base.BuildObject() :?> 'T
+    member this.BuildObject ([<ParamArray>] parameters: Object[]):'T = 
+        base.BuildObject(parameters) :?> 'T
 
