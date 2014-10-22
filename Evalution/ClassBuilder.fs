@@ -174,6 +174,7 @@ type public ClassBuilder(targetType:Type) =
 
         typeBuilder.CreateType()
 
+    let mutable resultType:Type = null;
 
     member this.Setup (property: string, expression: string) :ClassBuilder =
         let propertyInfo = typeProperties.Force() |> Array.find (fun x -> x.Name = property)
@@ -181,7 +182,8 @@ type public ClassBuilder(targetType:Type) =
         this
 
     member this.BuildObject ([<ParamArray>] parameters: Object[]):obj =
-        let resultType = createType targetType
+        if resultType = null then
+            resultType <- createType targetType
         Activator.CreateInstance(resultType, parameters)
 
 type public ClassBuilder<'T when 'T: null>() =
