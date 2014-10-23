@@ -24,6 +24,8 @@
         let dot = configurator.CreateTerminal(@"\.")
         let openSquare = configurator.CreateTerminal(@"\[")
         let closeSquare = configurator.CreateTerminal(@"\]")
+        let openParen = configurator.CreateTerminal(@"\(")
+        let closeParen = configurator.CreateTerminal(@"\)")
         let identifier = configurator.CreateTerminal(@"[a-zA-Z_][a-zA-Z_0-9]*", fun x -> box(Ast.Identifier(x)))
 
         configurator.LeftAssociative(plus) |> ignore
@@ -31,6 +33,11 @@
         configurator.LeftAssociative(asterisk) |> ignore
         configurator.LeftAssociative(forwardSlash) |> ignore
         configurator.LeftAssociative(dot) |> ignore
+
+        // Parens
+        expressionSpec.AddProduction(openParen, expressionSpec, closeParen)
+            .SetReduceFunction(fun x -> box (x.[1] :?> Ast.Expression))
+
 
         // BinaryExpressions
         expressionSpec.AddProduction(expressionSpec, plus, expressionSpec)
@@ -64,7 +71,6 @@
             x.[0] :?> Ast.Multicall,
             x.[2] :?> Ast.Expression
             )) )
-
 
         let parser = configurator.CreateParser()
         let result = parser.Parse(input)

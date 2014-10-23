@@ -107,10 +107,16 @@ type AstBuilderTest() =
 
     [<Test>]
     member x.TestParentheses()=
-        let result = AstBuilder.build "(1.5 + 1) * 2"
+        let result = AstBuilder.build "( 1.5 + 1 ) * 2"
         
         let expectedResult =
-            Ast.LiteralExpression(Ast.DoubleLiteral(1.5))
+            Ast.BinaryExpression(
+                Ast.BinaryExpression(
+                    Ast.LiteralExpression(Ast.DoubleLiteral(1.5)),
+                    Ast.Add,
+                    Ast.LiteralExpression(Ast.Int32Literal(1))),
+                Ast.Multiply,
+                Ast.LiteralExpression(Ast.Int32Literal(2)))
 
         Assert.AreEqual(expectedResult, result)
 
