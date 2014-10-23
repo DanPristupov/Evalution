@@ -185,3 +185,40 @@ type AstBuilderTest() =
             )
 
         Assert.AreEqual(expectedResult, result)
+
+    [<Test>]
+    member x.TestUnaryOperatorNegate()=
+        let result = AstBuilder.build "-2 + 1"
+        
+        let expectedResult =
+            Ast.BinaryExpression(
+                Ast.UnaryExpression(Ast.Negate, Ast.LiteralExpression(Ast.Int32Literal(2))),
+                Ast.Add,
+                Ast.LiteralExpression(Ast.Int32Literal(1)))
+
+        Assert.AreEqual(expectedResult, result)
+
+    [<Test>]
+    member x.TestUnaryOperatorIdentity()=
+        let result = AstBuilder.build "+2 + 1"
+        
+        let expectedResult =
+            Ast.BinaryExpression(
+                Ast.UnaryExpression(Ast.Identity, Ast.LiteralExpression(Ast.Int32Literal(2))),
+                Ast.Add,
+                Ast.LiteralExpression(Ast.Int32Literal(1)))
+
+        Assert.AreEqual(expectedResult, result)
+
+    [<Test>]
+    member x.TestUnaryOperatorLogicalNegate()=
+        // TODO: this is actually is not correct, because LogicalNegate can be applied only to bool value
+        let result = AstBuilder.build "!2 + 1"
+        
+        let expectedResult =
+            Ast.BinaryExpression(
+                Ast.UnaryExpression(Ast.LogicalNegate, Ast.LiteralExpression(Ast.Int32Literal(2))),
+                Ast.Add,
+                Ast.LiteralExpression(Ast.Int32Literal(1)))
+
+        Assert.AreEqual(expectedResult, result)

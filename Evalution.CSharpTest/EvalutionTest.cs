@@ -69,7 +69,7 @@ namespace Evalution.CSharpTest
         }
 
         [Test]
-        public void GeneralTest_UnarySigns()
+        public void GeneralTest_UnaryOperators()
         {
             var classBuilder = new ClassBuilder<ClassInt32>()
                 .Setup(x => x.DependentValue1, "-(2+2)+2")
