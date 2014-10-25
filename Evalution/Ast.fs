@@ -7,6 +7,7 @@ type Program = Expression
 and Expression =
     | BinaryExpression of Expression * BinaryOperator * Expression
     | LiteralExpression of Literal
+    | UnaryExpression of UnaryOperator * Expression
     | MultiCallExpression of Multicall
 
 and Literal =
@@ -28,3 +29,8 @@ and Multicall =
     | ThisPropertyCall of IdentifierRef
     | ObjectPropertyCall of Multicall * IdentifierRef
     | ArrayElementCall of Multicall * Expression
+
+and UnaryOperator =
+    | LogicalNegate
+    | Negate
+    | Identity
