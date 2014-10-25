@@ -72,12 +72,14 @@ namespace Evalution.CSharpTest
         public void GeneralTest_UnaryOperators()
         {
             var classBuilder = new ClassBuilder<ClassInt32>()
+                .Setup(x => x.ValueWithExpression, "-Value1")
                 .Setup(x => x.DependentValue1, "-(2+2)+2")
                 .Setup(x => x.DependentValue2, "(-2+2)+2")
                 .Setup(x => x.DependentValue3, "+(2+2)+2")
                 .Setup(x => x.DependentValue4, "(+2+2)+2");
             var target = classBuilder.BuildObject();
-
+            target.Value1 = 1;
+            Assert.AreEqual(-1, target.ValueWithExpression);
             Assert.AreEqual(-2, target.DependentValue1);
             Assert.AreEqual(2, target.DependentValue2);
             Assert.AreEqual(6, target.DependentValue3);
