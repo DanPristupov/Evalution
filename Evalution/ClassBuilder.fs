@@ -82,12 +82,13 @@ type public ClassBuilder(targetType:Type) =
                     | Ast.Int32Literal(_) -> typeof<int>
                     | Ast.DoubleLiteral(_) -> typeof<float>
                     | Ast.TimeSpanLiteral(_) -> typeof<TimeSpan>
+                | Ast.UnaryExpression(_,expr) -> getExpressionType expr objType
                 | Ast.MultiCallExpression(multicallExpr) -> getMultiCallExpressionType(multicallExpr, objType)
 
             let rec generateMethodBody (program: Ast.Program) =
                 let rec generateMulticallBody (multicall: Ast.Multicall, thisType: Type) =
                     let createPropertyCall (typeProperties : PropertyInfo[], propertyName) =
-                        let targetProperty = typeProperties |> Seq.find(fun x -> x.Name = propertyName)
+                        let targetProperty = typeProperties |> Seq.find(fun x -> x.Name = propertyName) // todo: findOrEmpty. Throw an exception that property 'XX' cannot be found in the class 'YY"
                         let getMethodPropertyInfo = targetProperty.GetGetMethod()
                         emitter.CallVirtual(getMethodPropertyInfo) |> ignore
                         targetProperty.PropertyType
@@ -156,8 +157,18 @@ type public ClassBuilder(targetType:Type) =
                         emitter.LoadConstant(v.Ticks) |> ignore
                         emitter.Call(fromTicksMethod) |> ignore
                     | _ -> failwith "Unknown literal"
+                | Ast.UnaryExpression (uExp, expr) ->
+                    match uExp with
+                    | Ast.LogicalNegate ->
+                        failwith "Logical negate is not implemented yet."
+                    | Ast.Negate ->
+                        generateMethodBody expr
+                        emitter.Negate() |> ignore
+                    | Ast.Identity ->
+                        generateMethodBody expr // We do not need to do anything here.
                 | Ast.MultiCallExpression (multicall) ->
                     generateMulticallBody(multicall, objType) |> ignore
+                |_ -> failwith "Unknown syntax tree element."
 
             generateMethodBody(AstBuilder.build expression)
             emitter.Return() |> ignore
