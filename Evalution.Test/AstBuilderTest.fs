@@ -205,6 +205,23 @@ type AstBuilderTest() =
         Assert.AreEqual(expectedResult, result)
 
     [<Test>]
+    member x.TestUnaryOperatorAndParenthesis()=
+        let result = AstBuilder.build "-(2+2)+2"
+        
+        let expectedResult =
+            Ast.BinaryExpression(
+                Ast.UnaryExpression(
+                    Ast.Negate,
+                    Ast.BinaryExpression(
+                        Ast.LiteralExpression(Ast.Int32Literal(2)),
+                        Ast.Add,
+                        Ast.LiteralExpression(Ast.Int32Literal(2)))),
+                Ast.Add,
+                Ast.LiteralExpression(Ast.Int32Literal(2)))
+
+        Assert.AreEqual(expectedResult, result)
+
+    [<Test>]
     member x.TestUnaryOperatorIdentity()=
         let result = AstBuilder.build "+2 + 1"
         
