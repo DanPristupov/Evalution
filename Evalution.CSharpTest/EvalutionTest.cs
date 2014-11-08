@@ -116,14 +116,14 @@ namespace Evalution.CSharpTest
         public void GeneralTest_TimeSpan()
         {
             var classBuilder = new ClassBuilder<ClassDateTime>()
-                .Setup(x => x.ValueWithExpression1, "TimeSpan.FromHours(4.5)")
+                .Setup(x => x.ValueWithExpression1, "TimeSpan.FromHours(1.0 + 4.5 * 2.0)")
                 .Setup(x => x.ValueWithExpression2, "TimeSpan.FromHours(4.5) + TimeSpan.FromHours(2.5)")
                 .Setup(x => x.DependentValue3,      "ValueWithExpression2 - TimeSpan.FromHours(3.0)")
                 ;
             var target = classBuilder.BuildObject();
 
-            Assert.AreEqual(TimeSpan.FromHours(4.5), target.ValueWithExpression1);  // "TimeSpan.FromHours(4.5)"
-            Assert.AreEqual(TimeSpan.FromHours(7), target.ValueWithExpression2);    // "TimeSpan.FromHours(4.5) + TimeSpan.FromHours(2.5)"
+            Assert.AreEqual(TimeSpan.FromHours(10.0), target.ValueWithExpression1); // "TimeSpan.FromHours(1 + 4.5 * 2)"
+            Assert.AreEqual(TimeSpan.FromHours(7.0), target.ValueWithExpression2);  // "TimeSpan.FromHours(4.5) + TimeSpan.FromHours(2.5)"
             Assert.AreEqual(TimeSpan.FromHours(4.0), target.DependentValue3);       // "ValueWithExpression2 - TimeSpan.FromHours(3)"
         }
 
