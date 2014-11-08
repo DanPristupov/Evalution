@@ -83,9 +83,9 @@
 
         multiCallExpressionSpec.AddProduction(multiCallExpressionSpec, openSquare, expressionSpec, closeSquare)
             .SetReduceFunction(fun x -> box (Ast.ArrayElementCall(
-            x.[0] :?> Ast.Multicall,
-            x.[2] :?> Ast.Expression
-            )) )
+                                                x.[0] :?> Ast.Multicall,
+                                                x.[2] :?> Ast.Expression
+                                                )) )
 
         let parser = configurator.CreateParser()
         let result = parser.Parse(input)
