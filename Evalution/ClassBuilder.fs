@@ -36,8 +36,8 @@ type public ClassBuilder(targetType:Type) =
                         i <- i + 1
                         ()
                     emit.Call(ctor) |> ignore
-                    emit.Return()
-                    emit.CreateConstructor()
+                    emit.Return() |> ignore
+                    emit.CreateConstructor() |> ignore
                     ()
                 for ctor in objType.GetConstructors() do
                     createProxyConstructor ctor
