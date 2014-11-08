@@ -74,10 +74,10 @@ type AstBuilderTest() =
 
     [<Test>]
     member x.TestTimeSpanLiteral ()=
-        let result = AstBuilder.build "TimeSpan.FromHours(4.0)"
+        let result = AstBuilder.build "TimeSpan.FromHours(4.0 * 2)"
         
         let expectedResult =
-            Ast.LiteralExpression(Ast.TimeSpanLiteral(TimeSpan.FromHours(4.0)))
+            Ast.LiteralExpression(Ast.TimeSpanLiteral(TimeSpan.FromHours(8.0)))
 
         Assert.AreEqual(expectedResult, result)
 
