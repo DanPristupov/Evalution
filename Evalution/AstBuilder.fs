@@ -1,12 +1,7 @@
 ﻿module Evalution.AstBuilder
-    open System
     open Piglet.Parser
 
     let build (input:string) : Ast.Program =
-        let getTimeSpan (input:string) :TimeSpan =
-            let value = input.Substring(1 + input.IndexOf '(').TrimEnd(')')
-            TimeSpan.FromHours(float value)
-
         let configurator = ParserFactory.Configure<obj>()
 
         let expressionSpec = configurator.CreateNonTerminal()
@@ -15,9 +10,6 @@
 
         let int32Literal = configurator.CreateTerminal(@"\d+", fun x -> box (Ast.Int32Literal (int x) ) )
         let doubleLiteral = configurator.CreateTerminal(@"\d+\.\d+", fun x -> box (Ast.DoubleLiteral (float x) ) )
-        let timeSpanLiteral = configurator.CreateTerminal(
-                                            @"TimeSpan\.FromHours\(\d+\.\d+\)",
-                                            fun x -> box (Ast.TimeSpanLiteral (getTimeSpan(x)) ) )
         let plus = configurator.CreateTerminal(@"\+")
         let minus = configurator.CreateTerminal(@"-")
         let exclamation = configurator.CreateTerminal(@"!")
@@ -29,6 +21,7 @@
         let openParen = configurator.CreateTerminal(@"\(")
         let closeParen = configurator.CreateTerminal(@"\)")
         let identifier = configurator.CreateTerminal(@"[a-zA-Z_][a-zA-Z_0-9]*", fun x -> box(Ast.Identifier(x)))
+        let timeSpan = configurator.CreateTerminal(@"TimeSpan\.FromHours")
 
         configurator.LeftAssociative(plus, minus, exclamation) |> ignore
         configurator.LeftAssociative(asterisk) |> ignore
@@ -51,12 +44,15 @@
         expressionSpec.AddProduction(expressionSpec, forwardSlash, expressionSpec)
             .SetReduceFunction(fun x -> box (Ast.BinaryExpression(x.[0] :?> Ast.Expression, Ast.Divide, x.[2] :?>Ast.Expression)))
 
+        // TimeSpanExpression
+        expressionSpec.AddProduction(timeSpan, openParen, expressionSpec, closeParen)
+            .SetReduceFunction(fun x -> box (Ast.TimeSpanExpression(
+                                                x.[2] :?> Ast.Expression
+                                                )) )
         // Literals
         expressionSpec.AddProduction(int32Literal)
             .SetReduceFunction(fun x -> box (Ast.LiteralExpression(x.[0]:?>Ast.Literal ) ))
         expressionSpec.AddProduction(doubleLiteral)
-            .SetReduceFunction(fun x -> box (Ast.LiteralExpression(x.[0]:?>Ast.Literal ) ))
-        expressionSpec.AddProduction(timeSpanLiteral)
             .SetReduceFunction(fun x -> box (Ast.LiteralExpression(x.[0]:?>Ast.Literal ) ))
 
         // UnaryOperators
@@ -81,6 +77,7 @@
         multiCallExpressionSpec.AddProduction(multiCallExpressionSpec, dot, identifier)
             .SetReduceFunction(fun x -> box (Ast.ObjectPropertyCall(x.[0] :?>Ast.Multicall, x.[2] :?>Ast.IdentifierRef)) )
 
+        // Array element call
         multiCallExpressionSpec.AddProduction(multiCallExpressionSpec, openSquare, expressionSpec, closeSquare)
             .SetReduceFunction(fun x -> box (Ast.ArrayElementCall(
                                                 x.[0] :?> Ast.Multicall,
