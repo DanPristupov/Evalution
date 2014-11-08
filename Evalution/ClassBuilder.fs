@@ -19,19 +19,20 @@ type public ClassBuilder(targetType:Type) =
             let assemblyName = new AssemblyName("EV_" + objType.Name) // may be I should use assembly of the objType?
             let assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run)
             let moduleBuilder = assemblyBuilder.DefineDynamicModule("EvalutionModule");
-            let typeBuilder = moduleBuilder.DefineType("EV" + objType.Name,
-                TypeAttributes.Public ||| TypeAttributes.Class ||| TypeAttributes.AutoClass |||
-                TypeAttributes.AnsiClass ||| TypeAttributes.BeforeFieldInit ||| TypeAttributes.AutoLayout,
-                null)
+            let typeBuilder =
+                moduleBuilder.DefineType("EV" + objType.Name,
+                                        TypeAttributes.Public ||| TypeAttributes.Class ||| TypeAttributes.AutoClass |||
+                                        TypeAttributes.AnsiClass ||| TypeAttributes.BeforeFieldInit ||| TypeAttributes.AutoLayout,
+                                        null)
 
             let createProxyConstructors ()= 
                 let createProxyConstructor (ctor:ConstructorInfo) =
-                    let params = ctor.GetParameters()
-                    let paramTypes = params |> Seq.map (fun x -> x.ParameterType) |> Seq.toArray
+                    let parameters = ctor.GetParameters()
+                    let paramTypes = parameters |> Seq.map (fun x -> x.ParameterType) |> Seq.toArray
                     let emit = Emit.BuildConstructor(paramTypes, typeBuilder, MethodAttributes.Public, CallingConventions.HasThis)
                     emit.LoadArgument(uint16 0) |> ignore
                     let mutable i = 1
-                    for param in params do
+                    for param in parameters do
                         emit.LoadArgument(uint16 i) |> ignore
                         i <- i + 1
                         ()
@@ -53,9 +54,9 @@ type public ClassBuilder(targetType:Type) =
 
         let createGetPropertyMethodBuilder(propertyName, propertyType:Type, expression):MethodBuilder =
             let emitter = Emit.BuildMethod(propertyType, Array.empty, typeBuilder, "get_"+propertyName,
-                MethodAttributes.Public ||| MethodAttributes.SpecialName ||| MethodAttributes.HideBySig |||
-                MethodAttributes.Virtual,
-                CallingConventions.Standard ||| CallingConventions.HasThis)
+                                            MethodAttributes.Public ||| MethodAttributes.SpecialName ||| MethodAttributes.HideBySig |||
+                                            MethodAttributes.Virtual,
+                                            CallingConventions.Standard ||| CallingConventions.HasThis)
             
             let rec getExpressionType expression objType=
                 let rec getMultiCallExpressionType(multicallExpression, objType: Type) =
@@ -122,7 +123,7 @@ type public ClassBuilder(targetType:Type) =
 
                     let isPrimitiveType t =
                         match t with
-                        | (x) when x = typeof<int> or x = typeof<float> -> true
+                        | (x) when x = typeof<int> || x = typeof<float> -> true
                         | _ -> false 
 
                     match operator with
