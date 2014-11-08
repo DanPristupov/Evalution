@@ -1,5 +1,4 @@
 ﻿namespace Evalution.Test
-open System
 open Evalution
 open NUnit.Framework
 
@@ -74,10 +73,16 @@ type AstBuilderTest() =
 
     [<Test>]
     member x.TestTimeSpanLiteral ()=
-        let result = AstBuilder.build "TimeSpan.FromHours(4.0)"
+        let result = AstBuilder.build "TimeSpan.FromHours(4.0 * 2)"
         
         let expectedResult =
-            Ast.LiteralExpression(Ast.TimeSpanLiteral(TimeSpan.FromHours(4.0)))
+            Ast.TimeSpanExpression(
+                Ast.BinaryExpression(
+                    Ast.LiteralExpression(Ast.DoubleLiteral(4.0)),
+                    Ast.Multiply,
+                    Ast.LiteralExpression(Ast.Int32Literal(2))
+                )
+            )
 
         Assert.AreEqual(expectedResult, result)
 

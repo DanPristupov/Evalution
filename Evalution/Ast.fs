@@ -1,7 +1,5 @@
 ﻿module Evalution.Ast
 
-open System
-
 type Program = Expression
 
 and Expression =
@@ -9,12 +7,12 @@ and Expression =
     | LiteralExpression of Literal
     | UnaryExpression of UnaryOperator * Expression
     | MultiCallExpression of Multicall
+    | TimeSpanExpression of Expression // TODO: make of long (ticks)
 
 and Literal =
     | BoolLiteral of bool
     | Int32Literal of int
     | DoubleLiteral of float
-    | TimeSpanLiteral of TimeSpan // TODO: make of long (ticks)
 
 and BinaryOperator =
     | Add

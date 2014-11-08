@@ -74,6 +74,7 @@ type public ClassBuilder(targetType:Type) =
                     | Ast.ArrayElementCall (prevCall, _) ->
                         let subPropertyType = getMultiCallExpressionType(prevCall, objType)
                         subPropertyType.GetElementType()
+                    | _ -> failwith "Unknown multicall expression"
 
                 match expression with
                 | Ast.BinaryExpression(el,_, er) -> getExpressionType el objType
@@ -82,9 +83,10 @@ type public ClassBuilder(targetType:Type) =
                     | Ast.BoolLiteral(_) -> typeof<bool>
                     | Ast.Int32Literal(_) -> typeof<int>
                     | Ast.DoubleLiteral(_) -> typeof<float>
-                    | Ast.TimeSpanLiteral(_) -> typeof<TimeSpan>
                 | Ast.UnaryExpression(_,expr) -> getExpressionType expr objType
+                | Ast.TimeSpanExpression(_) -> typeof<TimeSpan>
                 | Ast.MultiCallExpression(multicallExpr) -> getMultiCallExpressionType(multicallExpr, objType)
+                | _ -> failwith "Unknown expression"
 
             let rec generateMethodBody (program: Ast.Program) =
                 let rec generateMulticallBody (multicall: Ast.Multicall, thisType: Type) =
@@ -109,6 +111,7 @@ type public ClassBuilder(targetType:Type) =
                         let elementType = subPropertyType.GetElementType()
                         emitter.LoadElement(elementType) |> ignore
                         elementType
+                    | _ -> failwith "Unknown multicall expression"
 
                 match program with
                 | Ast.BinaryExpression (leftExpr, operator, rightExpr) ->
@@ -147,17 +150,18 @@ type public ClassBuilder(targetType:Type) =
                     | Ast.Divide ->
                         loadExpressionResultOnStack()
                         emitter.Divide() |> ignore
+                    | _ -> failwith "Unknown operator"
                 | Ast.LiteralExpression (literal) ->
                     match literal with
                     | Ast.Int32Literal (v) ->
                         emitter.LoadConstant(v) |> ignore
                     | Ast.DoubleLiteral (v) ->
                         emitter.LoadConstant(v) |> ignore
-                    | Ast.TimeSpanLiteral (v) ->
-                        let fromTicksMethod = typeof<TimeSpan>.GetMethod("FromTicks")
-                        emitter.LoadConstant(v.Ticks) |> ignore
-                        emitter.Call(fromTicksMethod) |> ignore
                     | _ -> failwith "Unknown literal"
+                | Ast.TimeSpanExpression (expr) ->
+                    generateMethodBody expr
+                    let fromHoursMethod = typeof<TimeSpan>.GetMethod("FromHours")
+                    emitter.Call(fromHoursMethod) |> ignore
                 | Ast.UnaryExpression (uExp, expr) ->
                     match uExp with
                     | Ast.LogicalNegate ->
