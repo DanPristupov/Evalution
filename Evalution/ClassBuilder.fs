@@ -14,6 +14,12 @@ type public ClassBuilder(targetType:Type) =
     let typePropertiesX = new Collections.Generic.Dictionary<Type, PropertyInfo[]>()
     let typeProperties = lazy (targetType.GetProperties())
 
+    let objectContexts =
+        seq {
+            yield targetType
+            for environmentClass in environmentClasses do
+                yield environmentClass
+        }
 
     let getProperties (t:Type) :PropertyInfo[] =
         if typePropertiesX.ContainsKey(t) then
@@ -109,16 +115,14 @@ type public ClassBuilder(targetType:Type) =
 
                     let getCurrentContextProperty (propertyName) =
                         // Priorities: CurrentObject, EnvironmentObject
-                        match findProperty(thisType, propertyName) with
-                        | (true, property) -> (thisType, property)
-                        | _ ->
-                            let result =
-                                environmentClasses |> Seq.map(fun x -> (x, findProperty(x, propertyName)))
-                                |> Seq.tryFind(fun (obj, (success, property)) -> success)
+                        let result =
+                            objectContexts
+                            |> Seq.map(fun x -> (x, findProperty(x, propertyName)))
+                            |> Seq.tryFind(fun (obj, (success, property)) -> success)
 
-                            match result with
-                            | Some(obj, (success, property)) -> (obj, property)
-                            | _ -> raise (new InvalidNameException ((sprintf "Cannot find name '%s' in the current context." propertyName), propertyName))
+                        match result with
+                        | Some(obj, (success, property)) -> (obj, property)
+                        | _ -> raise (new InvalidNameException ((sprintf "Cannot find name '%s' in the current context." propertyName), propertyName))
 
                     let createPropertyCall (typeProperties : PropertyInfo[], propertyName) =
                         let targetProperty = typeProperties |> Seq.find(fun x -> x.Name = propertyName) // todo: findOrEmpty. Throw an exception that property 'XX' cannot be found in the class 'YY"
