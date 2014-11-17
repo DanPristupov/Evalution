@@ -6,7 +6,7 @@ open Sigil
 open Sigil.NonGeneric
 
 type PropertyExpression = {Property : PropertyInfo; Expr: string }
-
+// TODO: create a function to receive a list of type properties (with caching)
 type public ClassBuilder(targetType:Type) =
 
     let environmentClasses = new ResizeArray<Type>()
@@ -68,9 +68,9 @@ type public ClassBuilder(targetType:Type) =
                     | Ast.CurrentContextPropertyCall (identifier) ->
                         let (Ast.Identifier targetPropertyName) = identifier
                         getPropertyType(targetTypeProperties, targetPropertyName)
-                    | Ast.ObjectPropertyCall (prevCall, ident) ->
+                    | Ast.ObjectContextPropertyCall (prevCall, identifier) ->
                         let subPropertyType = getMultiCallExpressionType(prevCall, objType)
-                        let (Ast.Identifier targetPropertyName) = ident
+                        let (Ast.Identifier targetPropertyName) = identifier
                         getPropertyType(subPropertyType.GetProperties(), targetPropertyName)
                     | Ast.ArrayElementCall (prevCall, _) ->
                         let subPropertyType = getMultiCallExpressionType(prevCall, objType)
@@ -135,7 +135,7 @@ type public ClassBuilder(targetType:Type) =
                         else
                             createPropertyCal2(property)
 
-                    | Ast.ObjectPropertyCall (prevCall, ident) ->
+                    | Ast.ObjectContextPropertyCall (prevCall, ident) ->
                         let subPropertyType = generateMulticallBody(prevCall, thisType)
                         let (Ast.Identifier targetPropertyName) = ident
                         createPropertyCall(subPropertyType.GetProperties(), targetPropertyName)

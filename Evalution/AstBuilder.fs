@@ -75,7 +75,7 @@
         multiCallExpressionSpec.AddProduction(identifier)
             .SetReduceFunction(fun x -> box (Ast.CurrentContextPropertyCall(x.[0] :?> Ast.IdentifierRef)) )
         multiCallExpressionSpec.AddProduction(multiCallExpressionSpec, dot, identifier)
-            .SetReduceFunction(fun x -> box (Ast.ObjectPropertyCall(x.[0] :?>Ast.Multicall, x.[2] :?>Ast.IdentifierRef)) )
+            .SetReduceFunction(fun x -> box (Ast.ObjectContextPropertyCall(x.[0] :?>Ast.Multicall, x.[2] :?>Ast.IdentifierRef)) )
 
         // Array element call
         multiCallExpressionSpec.AddProduction(multiCallExpressionSpec, openSquare, expressionSpec, closeSquare)

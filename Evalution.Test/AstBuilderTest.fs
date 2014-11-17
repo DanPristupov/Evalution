@@ -153,8 +153,8 @@ type AstBuilderTest() =
         
         let expectedResult =
             Ast.MultiCallExpression(
-                Ast.ObjectPropertyCall(
-                    Ast.ObjectPropertyCall(
+                Ast.ObjectContextPropertyCall(
+                    Ast.ObjectContextPropertyCall(
                         Ast.CurrentContextPropertyCall(Ast.Identifier("var1"))
                         , Ast.Identifier("var2")
                     ), Ast.Identifier("var3")
@@ -169,7 +169,7 @@ type AstBuilderTest() =
         
         let expectedResult =
             Ast.MultiCallExpression(
-                Ast.ObjectPropertyCall(
+                Ast.ObjectContextPropertyCall(
                     Ast.ArrayElementCall(
                         Ast.CurrentContextPropertyCall(Ast.Identifier("array")),
                         Ast.LiteralExpression(Ast.Int32Literal(12))

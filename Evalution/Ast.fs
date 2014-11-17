@@ -25,7 +25,7 @@ and IdentifierRef =
     
 and Multicall =
     | CurrentContextPropertyCall of IdentifierRef
-    | ObjectPropertyCall of Multicall * IdentifierRef
+    | ObjectContextPropertyCall of Multicall * IdentifierRef
     | ArrayElementCall of Multicall * Expression
 
 and UnaryOperator =
