@@ -192,7 +192,14 @@ type public ClassBuilder(targetType:Type) =
 
     let mutable resultType:Type = null;
 
+    member this.AddEnvironment (environmentClass: Type) : ClassBuilder =
+        if resultType <> null then failwith "Object has been already built and cannot be updated after that."
+        environmentClasses.Add(environmentClass)
+        this
+
     member this.Setup (property: string, expression: string) :ClassBuilder =
+        if resultType <> null then failwith "Object has been already built and cannot be updated after that."
+
         let propertyInfo = typeProperties.Force() |> Array.find (fun x -> x.Name = property)
         propertyExpressions.Add({ Property= propertyInfo; Expr = expression } )
         this
@@ -204,6 +211,9 @@ type public ClassBuilder(targetType:Type) =
 
 type public ClassBuilder<'T when 'T: null>() =
     inherit ClassBuilder(typeof<'T>)
+
+    member this.AddEnvironment (environmentClass: Type) :ClassBuilder<'T> =
+        base.AddEnvironment(environmentClass) :?> ClassBuilder<'T>
 
     member this.Setup<'TProperty> (property:System.Linq.Expressions.Expression<Func<'T, 'TProperty>>, expression: string):ClassBuilder<'T> = 
         let body = property.Body :?> System.Linq.Expressions.MemberExpression
