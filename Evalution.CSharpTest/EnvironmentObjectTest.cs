@@ -2,6 +2,8 @@ using NUnit.Framework;
 
 namespace Evalution.CSharpTest
 {
+    // todo: make a test that the injection target property is virtual or abstract
+    // todo: make a test to check the variable name priorities: current class - environment static class, environment class
     [TestFixture]
     public class EnvironmentObjectTest
     {
@@ -10,19 +12,20 @@ namespace Evalution.CSharpTest
         {
             var classBuilder = new ClassBuilder<TargetClass>()
                 .AddEnvironment(typeof (EnvironmentClass))
-                .Setup(x => x.Value, "1 + EnvironmentValue")
+                .Setup(x => x.Value, "EnvironmentValue")
+//                .Setup(x => x.Value, "1 + EnvironmentValue")
                 ;
             
             var target = classBuilder.BuildObject();
 
-            Assert.AreEqual(31338, target.Value);   // "1 + EnvironmentValue"
+            Assert.AreEqual(31337, target.Value);   // "1 + EnvironmentValue"
         }
 
         #region TestHelpers
 
         public class TargetClass
         {
-            public int Value { get; set; }
+            public virtual int Value { get; set; }
         }
 
         public static class EnvironmentClass

@@ -9,6 +9,7 @@ type PropertyExpression = {Property : PropertyInfo; Expr: string }
 
 type public ClassBuilder(targetType:Type) =
 
+    let environmentClasses = new ResizeArray<Type>()
     let propertyExpressions = new ResizeArray<PropertyExpression>()
     let typeProperties = lazy (targetType.GetProperties())
 
@@ -90,17 +91,50 @@ type public ClassBuilder(targetType:Type) =
 
             let rec generateMethodBody (program: Ast.Program) =
                 let rec generateMulticallBody (multicall: Ast.Multicall, thisType: Type) =
+                    let findProperty (t:Type, propertyName) =
+                        let properties:PropertyInfo [] = t.GetProperties()
+                        match properties |> Seq.tryFind(fun x -> x.Name = propertyName) with
+                        | Some (property) -> (true, property.GetGetMethod())
+                        | None -> (false, null)
+
+                    let getCurrentContextProperty (propertyName) =
+                        // Priorities: CurrentObject, EnvironmentObject
+                        match findProperty(thisType, propertyName) with
+                        | (true, property) -> (thisType, property)
+                        | _ ->
+                            let result =
+                                environmentClasses |> Seq.map(fun x -> (x, findProperty(x, propertyName)))
+                                |> Seq.tryFind(fun (obj, (success, property)) -> success)
+
+                            match result with
+                            | Some(obj, (success, property)) -> (obj, property)
+                            | _ -> failwith (sprintf "Unknown identitifier '%s'" propertyName)
+
+//                            for environmentClass in environmentClasses do
+//                                match findProperty(environmentClass, propertyName) with
+//                                | (true, property) -> (environmentClass, property)
+//                            failwith (sprintf "Unknown identitifier '%s'" propertyName)
+
                     let createPropertyCall (typeProperties : PropertyInfo[], propertyName) =
                         let targetProperty = typeProperties |> Seq.find(fun x -> x.Name = propertyName) // todo: findOrEmpty. Throw an exception that property 'XX' cannot be found in the class 'YY"
                         let getMethodPropertyInfo = targetProperty.GetGetMethod()
                         emitter.CallVirtual(getMethodPropertyInfo) |> ignore
                         targetProperty.PropertyType
 
+                    let createPropertyCal2 (propertyMethod : MethodInfo) =
+                        emitter.Call(propertyMethod) |> ignore
+                        propertyMethod.ReturnType
+
                     match multicall with
-                    | Ast.ThisPropertyCall (identifier) ->
+                    | Ast.ThisPropertyCall (identifier) -> // TODO: this must be CurrentContextPropertyCall
                         let (Ast.Identifier targetPropertyName) = identifier
-                        emitter.LoadArgument(uint16 0) |> ignore    // Emit: load 'this' reference onto stack
-                        createPropertyCall(targetTypeProperties, targetPropertyName)
+                        let (target, property) = getCurrentContextProperty targetPropertyName
+                        if target = thisType then
+                            emitter.LoadArgument(uint16 0) |> ignore    // Emit: load 'this' reference onto stack
+                            createPropertyCall(targetTypeProperties, targetPropertyName)
+                        else
+                            createPropertyCal2(property)
+
                     | Ast.ObjectPropertyCall (prevCall, ident) ->
                         let subPropertyType = generateMulticallBody(prevCall, thisType)
                         let (Ast.Identifier targetPropertyName) = ident
