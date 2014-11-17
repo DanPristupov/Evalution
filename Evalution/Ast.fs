@@ -24,7 +24,7 @@ and IdentifierRef =
     | Identifier of string
     
 and Multicall =
-    | ThisPropertyCall of IdentifierRef
+    | CurrentContextPropertyCall of IdentifierRef
     | ObjectPropertyCall of Multicall * IdentifierRef
     | ArrayElementCall of Multicall * Expression
 

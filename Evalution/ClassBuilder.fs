@@ -65,7 +65,7 @@ type public ClassBuilder(targetType:Type) =
                         let targetProperty = typeProperties |> Seq.find(fun x -> x.Name = propertyName)
                         targetProperty.PropertyType
                     match multicallExpression with
-                    | Ast.ThisPropertyCall (identifier) ->
+                    | Ast.CurrentContextPropertyCall (identifier) ->
                         let (Ast.Identifier targetPropertyName) = identifier
                         getPropertyType(targetTypeProperties, targetPropertyName)
                     | Ast.ObjectPropertyCall (prevCall, ident) ->
@@ -126,7 +126,7 @@ type public ClassBuilder(targetType:Type) =
                         propertyMethod.ReturnType
 
                     match multicall with
-                    | Ast.ThisPropertyCall (identifier) -> // TODO: this must be CurrentContextPropertyCall
+                    | Ast.CurrentContextPropertyCall (identifier) -> // TODO: this must be CurrentContextPropertyCall
                         let (Ast.Identifier targetPropertyName) = identifier
                         let (target, property) = getCurrentContextProperty targetPropertyName
                         if target = thisType then
