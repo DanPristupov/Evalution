@@ -108,7 +108,7 @@ type public ClassBuilder(targetType:Type) =
 
                             match result with
                             | Some(obj, (success, property)) -> (obj, property)
-                            | _ -> failwith (sprintf "Unknown identitifier '%s'" propertyName)
+                            | _ -> raise (new InvalidNameException ((sprintf "Cannot find name '%s' in the current context." propertyName), propertyName))
 
 //                            for environmentClass in environmentClasses do
 //                                match findProperty(environmentClass, propertyName) with
@@ -199,7 +199,7 @@ type public ClassBuilder(targetType:Type) =
                 | Ast.UnaryExpression (uExp, expr) ->
                     match uExp with
                     | Ast.LogicalNegate ->
-                        failwith "Logical negate is not implemented yet."
+                        raise(new NotImplementedException("Logical negate is not implemented yet."))
                     | Ast.Negate ->
                         generateMethodBody expr
                         emitter.Negate() |> ignore
