@@ -11,8 +11,7 @@ type public ClassBuilder(targetType:Type) =
 
     let environmentClasses = new ResizeArray<Type>()
     let propertyExpressions = new ResizeArray<PropertyExpression>()
-    let typePropertiesX = new Collections.Generic.Dictionary<Type, PropertyInfo[]>()
-    let typeProperties = lazy (targetType.GetProperties())
+    let typeProperties = new Collections.Generic.Dictionary<Type, PropertyInfo[]>()
 
     let objectContexts =
         seq {
@@ -22,11 +21,11 @@ type public ClassBuilder(targetType:Type) =
         }
 
     let getProperties (t:Type) :PropertyInfo[] =
-        if typePropertiesX.ContainsKey(t) then
-            typePropertiesX.[t]
+        if typeProperties.ContainsKey(t) then
+            typeProperties.[t]
         else
             let properties = t.GetProperties()
-            typePropertiesX.Add(t, properties)
+            typeProperties.Add(t, properties)
             properties
 
     let createType (objType: Type):Type =
@@ -113,7 +112,7 @@ type public ClassBuilder(targetType:Type) =
                         | Some (property) -> (true, property.GetGetMethod())
                         | None -> (false, null)
 
-                    let getCurrentContextProperty (propertyName) =
+                    let getCurrentContextProperty (propertyName) = // todo: rename to GetDefaultContextProperty
                         // Priorities: CurrentObject, EnvironmentObject
                         let result =
                             objectContexts
@@ -243,7 +242,7 @@ type public ClassBuilder(targetType:Type) =
     member this.Setup (property: string, expression: string) :ClassBuilder =
         if resultType <> null then failwith "Object has been already built and cannot be updated after that."
 
-        let propertyInfo = typeProperties.Force() |> Array.find (fun x -> x.Name = property)
+        let propertyInfo = getProperties(targetType) |> Array.find (fun x -> x.Name = property) // todo: add an exception here
         propertyExpressions.Add({ Property= propertyInfo; Expr = expression } )
         this
 
