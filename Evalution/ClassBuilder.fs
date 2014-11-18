@@ -51,14 +51,13 @@ type public ClassBuilder(targetType:Type) =
                     for param in parameters do
                         emit.LoadArgument(uint16 i) |> ignore
                         i <- i + 1
-                        ()
+
                     emit.Call(ctor) |> ignore
                     emit.Return() |> ignore
                     emit.CreateConstructor() |> ignore
-                    ()
+
                 for ctor in objType.GetConstructors() do
                     createProxyConstructor ctor
-                ()
 
             typeBuilder.SetParent(objType)
             createProxyConstructors()
@@ -66,7 +65,6 @@ type public ClassBuilder(targetType:Type) =
             typeBuilder
 
         let typeBuilder = createTypeBuilder objType
-        let targetTypeProperties = objType.GetProperties()
 
         let createGetPropertyMethodBuilder(propertyName, propertyType:Type, expression):MethodBuilder =
             let emitter = Emit.BuildMethod(propertyType, Array.empty, typeBuilder, "get_"+propertyName,
@@ -82,11 +80,11 @@ type public ClassBuilder(targetType:Type) =
                     match multicallExpression with
                     | Ast.CurrentContextPropertyCall (identifier) ->
                         let (Ast.Identifier targetPropertyName) = identifier
-                        getPropertyType(targetTypeProperties, targetPropertyName)
+                        getPropertyType(getProperties(targetType), targetPropertyName)
                     | Ast.ObjectContextPropertyCall (prevCall, identifier) ->
                         let subPropertyType = getMultiCallExpressionType(prevCall, objType)
                         let (Ast.Identifier targetPropertyName) = identifier
-                        getPropertyType(subPropertyType.GetProperties(), targetPropertyName)
+                        getPropertyType(getProperties(subPropertyType), targetPropertyName)
                     | Ast.ArrayElementCall (prevCall, _) ->
                         let subPropertyType = getMultiCallExpressionType(prevCall, objType)
                         subPropertyType.GetElementType()
@@ -129,7 +127,7 @@ type public ClassBuilder(targetType:Type) =
                         emitter.CallVirtual(getMethodPropertyInfo) |> ignore
                         targetProperty.PropertyType
 
-                    let createPropertyCal2 (propertyMethod : MethodInfo) =
+                    let createStaticPropertyCall (propertyMethod : MethodInfo) =
                         emitter.Call(propertyMethod) |> ignore
                         propertyMethod.ReturnType
 
@@ -139,14 +137,14 @@ type public ClassBuilder(targetType:Type) =
                         let (target, property) = getCurrentContextProperty targetPropertyName
                         if target = thisType then
                             emitter.LoadArgument(uint16 0) |> ignore    // Emit: load 'this' reference onto stack
-                            createPropertyCall(targetTypeProperties, targetPropertyName)
+                            createPropertyCall(getProperties(targetType), targetPropertyName)
                         else
-                            createPropertyCal2(property)
+                            createStaticPropertyCall(property)
 
-                    | Ast.ObjectContextPropertyCall (prevCall, ident) ->
+                    | Ast.ObjectContextPropertyCall (prevCall, identifier) ->
                         let subPropertyType = generateMulticallBody(prevCall, thisType)
-                        let (Ast.Identifier targetPropertyName) = ident
-                        createPropertyCall(subPropertyType.GetProperties(), targetPropertyName)
+                        let (Ast.Identifier targetPropertyName) = identifier
+                        createPropertyCall(getProperties(subPropertyType), targetPropertyName)
                     | Ast.ArrayElementCall (prevCall, expr) ->
                         let subPropertyType = generateMulticallBody(prevCall, thisType)
                         generateMethodBody expr
