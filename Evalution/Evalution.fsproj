@@ -53,6 +53,7 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Exceptions.fs" />
     <Compile Include="Ast.fs" />
     <Compile Include="AstBuilder.fs" />
     <Compile Include="ClassBuilder.fs" />

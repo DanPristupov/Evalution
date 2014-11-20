@@ -143,7 +143,7 @@ type AstBuilderTest() =
         
         let expectedResult =
             Ast.MultiCallExpression(
-                Ast.ThisPropertyCall(Ast.Identifier("var1")))
+                Ast.CurrentContextPropertyCall(Ast.Identifier("var1")))
 
         Assert.AreEqual(expectedResult, result)
 
@@ -153,9 +153,9 @@ type AstBuilderTest() =
         
         let expectedResult =
             Ast.MultiCallExpression(
-                Ast.ObjectPropertyCall(
-                    Ast.ObjectPropertyCall(
-                        Ast.ThisPropertyCall(Ast.Identifier("var1"))
+                Ast.ObjectContextPropertyCall(
+                    Ast.ObjectContextPropertyCall(
+                        Ast.CurrentContextPropertyCall(Ast.Identifier("var1"))
                         , Ast.Identifier("var2")
                     ), Ast.Identifier("var3")
                 )
@@ -169,9 +169,9 @@ type AstBuilderTest() =
         
         let expectedResult =
             Ast.MultiCallExpression(
-                Ast.ObjectPropertyCall(
+                Ast.ObjectContextPropertyCall(
                     Ast.ArrayElementCall(
-                        Ast.ThisPropertyCall(Ast.Identifier("array")),
+                        Ast.CurrentContextPropertyCall(Ast.Identifier("array")),
                         Ast.LiteralExpression(Ast.Int32Literal(12))
                     ),
                     Ast.Identifier("Item")
@@ -188,7 +188,7 @@ type AstBuilderTest() =
             Ast.MultiCallExpression(
                 Ast.ArrayElementCall(
                     Ast.ArrayElementCall(
-                        Ast.ThisPropertyCall(Ast.Identifier("array")),
+                        Ast.CurrentContextPropertyCall(Ast.Identifier("array")),
                         Ast.LiteralExpression(Ast.Int32Literal(12))
                     ),
                     Ast.LiteralExpression(Ast.Int32Literal(3))

@@ -249,5 +249,15 @@ namespace Evalution.CSharpTest
             Assert.False(target3.IntConstructurCalled);
             Assert.True(target3.DoubleIntConstructurCalled);
         }
+
+        [Test]
+        [ExpectedException(typeof(InvalidNameException))]
+        public void InvalidNameExceptionTest()
+        {
+            var classBuilder = new ClassBuilder<ClassInt32>()
+                .Setup(x => x.ValueWithExpression, "NonExistingProperty");
+            classBuilder.BuildObject();
+        }
+
     }
 }
