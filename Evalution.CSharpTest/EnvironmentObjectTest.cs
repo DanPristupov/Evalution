@@ -40,6 +40,21 @@ namespace Evalution.CSharpTest
             Assert.AreEqual(1213, target.Value2);                   // "1 + EnvironmentMethod1()"
         }
 
+        [Test]
+        public void MethodTest_OneArgument()
+        {
+            var classBuilder = new ClassBuilder<TargetClass>()
+                .AddEnvironment(typeof (EnvironmentClass))
+                .Setup(x => x.Value1, "EnvironmentMethod2(1)")
+                .Setup(x => x.Value2, "1 + EnvironmentMethod2(3)")
+                ;
+            
+            var target = classBuilder.BuildObject();
+
+            Assert.AreEqual(2, target.Value1);                   // "EnvironmentMethod2(1)"
+            Assert.AreEqual(4, target.Value2);                   // "1 + EnvironmentMethod2(3)"
+        }
+
         #region TestHelpers
 
         public class TargetClass
@@ -54,6 +69,11 @@ namespace Evalution.CSharpTest
             public static int EnvironmentMethod1()
             {
                 return 1212;
+            }
+
+            public static int EnvironmentMethod2(int arg)
+            {
+                return arg + 1;
             }
 
             public static int EnvironmentValue
