@@ -125,18 +125,27 @@ type AstBuilderTest() =
 
         Assert.AreEqual(expectedResult, result)
 
-//    [<Test>]
-//    member x.TestIdentifierExpression ()=
-//        let result = AstBuilder.build "variable/2"
-//        
-//        let expectedResult =
-//            Ast.BinaryExpression(
-//                Ast.IdentifierExpression(Ast.Identifier("variable")),
-//                Ast.Divide,
-//                Ast.LiteralExpression(Ast.Int32Literal(2)))
-//
-//        Assert.AreEqual(expectedResult, result)
-//
+    [<Test>]
+    member x.TestMethodCallExpression ()=
+        let result = AstBuilder.build "method(1.0,2+3)"
+
+        let expectedResult =
+            Ast.MethodCallExpression(
+                Ast.Identifier("method"),
+                [
+                    Ast.LiteralExpression(
+                        Ast.DoubleLiteral(1.0)
+                    );
+                    Ast.BinaryExpression(
+                        Ast.LiteralExpression(Ast.Int32Literal(2)),
+                        Ast.Add,
+                        Ast.LiteralExpression(Ast.Int32Literal(3))
+                    )
+                ]
+            )
+
+        Assert.AreEqual(expectedResult, result)
+
     [<Test>]
     member x.TestMultiCallExpression_Single ()=
         let result = AstBuilder.build "var1"
