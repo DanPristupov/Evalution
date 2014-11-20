@@ -46,13 +46,13 @@ namespace Evalution.CSharpTest
             var classBuilder = new ClassBuilder<TargetClass>()
                 .AddEnvironment(typeof (EnvironmentClass))
                 .Setup(x => x.Value1, "EnvironmentMethod2(1)")
-                .Setup(x => x.Value2, "1 + EnvironmentMethod2(3)")
+                .Setup(x => x.Value2, "1 + EnvironmentMethod2(1)")
                 ;
             
             var target = classBuilder.BuildObject();
 
             Assert.AreEqual(2, target.Value1);                   // "EnvironmentMethod2(1)"
-            Assert.AreEqual(4, target.Value2);                   // "1 + EnvironmentMethod2(3)"
+            Assert.AreEqual(3, target.Value2);                   // "1 + EnvironmentMethod2(1)"
         }
 
         #region TestHelpers

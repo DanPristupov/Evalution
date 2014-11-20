@@ -167,6 +167,7 @@ type public ClassBuilder(targetType:Type) =
                             emitter.LoadArgument(uint16 0) |> ignore    // Emit: load 'this' reference onto stack
                             createPropertyCall(getProperties(targetType), identifier)
                         else
+                            arguments |> Seq.iter(fun expr -> generateMethodBody expr)
                             createStaticMethodCall(method)
                     | Ast.CurrentContextPropertyCall (identifier) ->
                         let (target, property) = getCurrentContextProperty identifier
