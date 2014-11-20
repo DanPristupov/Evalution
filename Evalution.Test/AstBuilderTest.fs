@@ -130,18 +130,34 @@ type AstBuilderTest() =
         let result = AstBuilder.build "method(1.0,2+3)"
 
         let expectedResult =
-            Ast.MethodCallExpression(
-                Ast.Identifier("method"),
-                [
-                    Ast.LiteralExpression(
-                        Ast.DoubleLiteral(1.0)
-                    );
-                    Ast.BinaryExpression(
-                        Ast.LiteralExpression(Ast.Int32Literal(2)),
-                        Ast.Add,
-                        Ast.LiteralExpression(Ast.Int32Literal(3))
-                    )
-                ]
+            Ast.MultiCallExpression (
+                Ast.CurrentContextMethodCall(
+                    Ast.Identifier("method"),
+                    [
+                        Ast.LiteralExpression(
+                            Ast.DoubleLiteral(1.0)
+                        );
+                        Ast.BinaryExpression(
+                            Ast.LiteralExpression(Ast.Int32Literal(2)),
+                            Ast.Add,
+                            Ast.LiteralExpression(Ast.Int32Literal(3))
+                        )
+                    ]
+                )
+            )
+
+        Assert.AreEqual(expectedResult, result)
+
+    [<Test>]
+    member x.TestMethodCallExpression_NoArguments ()=
+        let result = AstBuilder.build "method()"
+
+        let expectedResult =
+            Ast.MultiCallExpression (
+                Ast.CurrentContextMethodCall(
+                    Ast.Identifier("method"),
+                    []
+                )
             )
 
         Assert.AreEqual(expectedResult, result)
