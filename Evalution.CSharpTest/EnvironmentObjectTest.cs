@@ -81,6 +81,19 @@ namespace Evalution.CSharpTest
             Assert.AreEqual(1214, target.Value1); // "EnvironmentMethodSum(EnvironmentMethod1(), EnvironmentMethod2(1))"
         }
 
+        [Test]
+        public void MethodTest_TimeSpan()
+        {
+            var classBuilder = new ClassBuilder<TargetClass>()
+                .AddEnvironment(typeof (TimeSpan))
+                .Setup(x => x.Value3, "FromHours(3.0)")
+                ;
+            
+            var target = classBuilder.BuildObject();
+
+            Assert.AreEqual(TimeSpan.FromHours(3), target.Value3); // "EnvironmentMethodSum(EnvironmentMethod1(), EnvironmentMethod2(1))"
+        }
+
         #region TestHelpers
 
         public class TargetClass
