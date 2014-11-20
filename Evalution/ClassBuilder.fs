@@ -29,6 +29,23 @@ type public ClassBuilder(targetType:Type) =
             typeProperties.Add(t, properties)
             properties
 
+    let getCurrentContextProperty (propertyName) = // todo: rename to GetDefaultContextProperty
+        let findProperty (t:Type, propertyName) =
+            let properties = getProperties t
+            match properties |> Seq.tryFind(fun x -> x.Name = propertyName) with
+            | Some (property) -> (true, property.GetGetMethod())
+            | None -> (false, null)
+
+        // Priorities: CurrentObject, EnvironmentObject
+        let result =
+            objectContexts
+            |> Seq.map(fun x -> (x, findProperty(x, propertyName)))
+            |> Seq.tryFind(fun (obj, (success, property)) -> success)
+
+        match result with
+        | Some(obj, (success, property)) -> (obj, property)
+        | _ -> raise (invalidNameError propertyName)
+
     let createType (objType: Type):Type =
 
         let createTypeBuilder (t:Type) =
@@ -76,7 +93,8 @@ type public ClassBuilder(targetType:Type) =
                     match multicallExpression with
                     | Ast.CurrentContextPropertyCall (identifier) ->
                         let (Ast.Identifier targetPropertyName) = identifier
-                        getPropertyType(getProperties(targetType), targetPropertyName)
+                        let (target, property) = getCurrentContextProperty targetPropertyName
+                        property.ReturnType
                     | Ast.ObjectContextPropertyCall (prevCall, identifier) ->
                         let subPropertyType = getMultiCallExpressionType(prevCall, objType)
                         let (Ast.Identifier targetPropertyName) = identifier
@@ -100,22 +118,6 @@ type public ClassBuilder(targetType:Type) =
 
             let rec generateMethodBody (program: Ast.Program) =
                 let rec generateMulticallBody (multicall: Ast.Multicall, thisType: Type) =
-                    let findProperty (t:Type, propertyName) =
-                        let properties = getProperties t
-                        match properties |> Seq.tryFind(fun x -> x.Name = propertyName) with
-                        | Some (property) -> (true, property.GetGetMethod())
-                        | None -> (false, null)
-
-                    let getCurrentContextProperty (propertyName) = // todo: rename to GetDefaultContextProperty
-                        // Priorities: CurrentObject, EnvironmentObject
-                        let result =
-                            objectContexts
-                            |> Seq.map(fun x -> (x, findProperty(x, propertyName)))
-                            |> Seq.tryFind(fun (obj, (success, property)) -> success)
-
-                        match result with
-                        | Some(obj, (success, property)) -> (obj, property)
-                        | _ -> raise (invalidNameError propertyName)
 
                     let createPropertyCall (typeProperties : PropertyInfo[], propertyName) =
                         let targetProperty = typeProperties |> Seq.find(fun x -> x.Name = propertyName) // todo: findOrEmpty. Throw an exception that property 'XX' cannot be found in the class 'YY"

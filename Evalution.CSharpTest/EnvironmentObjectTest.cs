@@ -1,3 +1,4 @@
+using System;
 using NUnit.Framework;
 
 namespace Evalution.CSharpTest
@@ -12,20 +13,25 @@ namespace Evalution.CSharpTest
         {
             var classBuilder = new ClassBuilder<TargetClass>()
                 .AddEnvironment(typeof (EnvironmentClass))
-                .Setup(x => x.Value, "EnvironmentValue")
-//                .Setup(x => x.Value, "1 + EnvironmentValue")
+                .Setup(x => x.Value1, "EnvironmentValue")
+                .Setup(x => x.Value2, "1 + EnvironmentValue")
+                .Setup(x => x.Value3, "TwoHours")
                 ;
             
             var target = classBuilder.BuildObject();
 
-            Assert.AreEqual(31337, target.Value);   // "1 + EnvironmentValue"
+            Assert.AreEqual(31337, target.Value1);                   // "EnvironmentValue"
+            Assert.AreEqual(31338, target.Value2);                   // "1 + EnvironmentValue"
+            Assert.AreEqual(TimeSpan.FromHours(2), target.Value3);   // "TwoHours"
         }
 
         #region TestHelpers
 
         public class TargetClass
         {
-            public virtual int Value { get; set; }
+            public virtual int Value1 { get; set; }
+            public virtual int Value2 { get; set; }
+            public virtual TimeSpan Value3 { get; set; }
         }
 
         public static class EnvironmentClass
@@ -33,6 +39,11 @@ namespace Evalution.CSharpTest
             public static int EnvironmentValue
             {
                 get { return 31337; }
+            }
+
+            public static TimeSpan TwoHours
+            {
+                get { return TimeSpan.FromHours(2); }
             }
         }
         #endregion
