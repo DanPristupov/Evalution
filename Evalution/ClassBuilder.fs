@@ -1,5 +1,6 @@
 ﻿namespace Evalution
 open System
+open System.Collections.Generic
 open System.Reflection
 open System.Reflection.Emit
 open Sigil.NonGeneric
@@ -12,7 +13,8 @@ type public ClassBuilder(targetType:Type) =
 
     let environmentClasses = new ResizeArray<Type>()
     let propertyExpressions = new ResizeArray<PropertyExpression>()
-    let typeProperties = new Collections.Generic.Dictionary<Type, PropertyInfo[]>()
+    let typeProperties = new Dictionary<Type, PropertyInfo[]>()
+    let typeMethods = new Dictionary<Type, MethodInfo[]>()
 
     let objectContexts =
         seq {
@@ -28,6 +30,30 @@ type public ClassBuilder(targetType:Type) =
             let properties = t.GetProperties()
             typeProperties.Add(t, properties)
             properties
+
+    let getMethods (t:Type) :MethodInfo[] =
+        if typeMethods.ContainsKey(t) then
+            typeMethods.[t]
+        else
+            let methods = t.GetMethods()
+            typeMethods.Add(t, methods)
+            methods
+
+    let getDefaultContextMethod (methodName) =
+        let findMethod (t:Type, methodName) =
+            let methods = getMethods t
+            match methods |> Seq.tryFind(fun x -> x.Name = methodName) with
+            | Some (method) -> (true, method)
+            | None -> (false, null)
+        // Priorities: CurrentObject, EnvironmentObject
+        let result =
+            objectContexts
+            |> Seq.map(fun x -> (x, findMethod(x, methodName)))
+            |> Seq.tryFind(fun (obj, (success, property)) -> success)
+
+        match result with
+        | Some(obj, (success, method)) -> (obj, method)
+        | _ -> raise (invalidNameError methodName)
 
     let getCurrentContextProperty (propertyName) = // todo: rename to GetDefaultContextProperty
         let findProperty (t:Type, propertyName) =
@@ -126,8 +152,19 @@ type public ClassBuilder(targetType:Type) =
                     let createStaticPropertyCall (propertyMethod : MethodInfo) =
                         emitter.Call(propertyMethod) |> ignore
                         propertyMethod.ReturnType
+                    let createStaticMethodCall (method : MethodInfo) =
+                        emitter.Call(method) |> ignore
+                        method.ReturnType
 
                     match multicall with
+                    | Ast.CurrentContextMethodCall (identifier, arguments) ->
+                        let (target, method) = getDefaultContextMethod identifier
+                        if target = thisType then
+                            failwith "not implemented"
+                            emitter.LoadArgument(uint16 0) |> ignore    // Emit: load 'this' reference onto stack
+                            createPropertyCall(getProperties(targetType), identifier)
+                        else
+                            createStaticMethodCall(method)
                     | Ast.CurrentContextPropertyCall (identifier) ->
                         let (target, property) = getCurrentContextProperty identifier
                         if target = thisType then

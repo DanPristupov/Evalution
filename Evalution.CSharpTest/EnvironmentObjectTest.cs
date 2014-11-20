@@ -55,7 +55,7 @@ namespace Evalution.CSharpTest
         {
             public static int EnvironmentMethod1()
             {
-                return 31337;
+                return 1212;
             }
 
             public static int EnvironmentValue
