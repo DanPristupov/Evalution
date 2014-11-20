@@ -9,7 +9,7 @@ namespace Evalution.CSharpTest
     public class EnvironmentObjectTest
     {
         [Test]
-        public void GeneralTest()
+        public void PropertyTest()
         {
             var classBuilder = new ClassBuilder<TargetClass>()
                 .AddEnvironment(typeof (EnvironmentClass))
@@ -25,6 +25,23 @@ namespace Evalution.CSharpTest
             Assert.AreEqual(TimeSpan.FromHours(2), target.Value3);   // "TwoHours"
         }
 
+        [Test]
+        public void MethodTest()
+        {
+            var classBuilder = new ClassBuilder<TargetClass>()
+                .AddEnvironment(typeof (EnvironmentClass))
+                .Setup(x => x.Value1, "EnvironmentMethod1()")
+//                .Setup(x => x.Value2, "1 + EnvironmentValue")
+//                .Setup(x => x.Value3, "TwoHours")
+                ;
+            
+            var target = classBuilder.BuildObject();
+
+            Assert.AreEqual(1212, target.Value1);                   // "EnvironmentValue"
+//            Assert.AreEqual(31338, target.Value2);                   // "1 + EnvironmentValue"
+//            Assert.AreEqual(TimeSpan.FromHours(2), target.Value3);   // "TwoHours"
+        }
+
         #region TestHelpers
 
         public class TargetClass
@@ -36,6 +53,11 @@ namespace Evalution.CSharpTest
 
         public static class EnvironmentClass
         {
+            public static int EnvironmentMethod1()
+            {
+                return 31337;
+            }
+
             public static int EnvironmentValue
             {
                 get { return 31337; }
