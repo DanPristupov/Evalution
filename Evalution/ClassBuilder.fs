@@ -31,37 +31,32 @@ type public ClassBuilder(targetType:Type) =
 
     let createType (objType: Type):Type =
 
-        let createTypeBuilder (objType:Type) =
+        let createTypeBuilder (t:Type) =
             // todo: should assemblyName be the same for all classes?
-            let assemblyName = new AssemblyName("EV_" + objType.Name) // may be I should use assembly of the objType?
+            let assemblyName = new AssemblyName("EV_" + t.Name) // may be I should use assembly of the objType?
             let assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run)
             let moduleBuilder = assemblyBuilder.DefineDynamicModule("EvalutionModule");
             let typeBuilder =
-                moduleBuilder.DefineType("EV" + objType.Name,
+                moduleBuilder.DefineType("EV" + t.Name,
                                         TypeAttributes.Public ||| TypeAttributes.Class ||| TypeAttributes.AutoClass |||
                                         TypeAttributes.AnsiClass ||| TypeAttributes.BeforeFieldInit ||| TypeAttributes.AutoLayout,
                                         null)
 
-            let createProxyConstructors ()= 
+            let createProxyConstructors (t: Type)= 
                 let createProxyConstructor (ctor:ConstructorInfo) =
                     let parameters = ctor.GetParameters()
                     let paramTypes = parameters |> Seq.map (fun x -> x.ParameterType) |> Seq.toArray
                     let emit = Emit.BuildConstructor(paramTypes, typeBuilder, MethodAttributes.Public, CallingConventions.HasThis)
                     emit.LoadArgument(uint16 0) |> ignore
-                    let mutable i = 1
-                    for param in parameters do
-                        emit.LoadArgument(uint16 i) |> ignore
-                        i <- i + 1
-
+                    parameters |> Seq.iteri(fun i _ -> emit.LoadArgument(uint16 (i+1)) |> ignore)
                     emit.Call(ctor) |> ignore
                     emit.Return() |> ignore
                     emit.CreateConstructor() |> ignore
 
-                for ctor in objType.GetConstructors() do
-                    createProxyConstructor ctor
+                t.GetConstructors() |> Seq.iter(fun x -> createProxyConstructor x)
 
-            typeBuilder.SetParent(objType)
-            createProxyConstructors()
+            typeBuilder.SetParent(t)
+            createProxyConstructors(t)
 
             typeBuilder
 
