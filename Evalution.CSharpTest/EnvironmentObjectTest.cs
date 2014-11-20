@@ -26,20 +26,18 @@ namespace Evalution.CSharpTest
         }
 
         [Test]
-        public void MethodTest()
+        public void MethodTest_NoArguments()
         {
             var classBuilder = new ClassBuilder<TargetClass>()
                 .AddEnvironment(typeof (EnvironmentClass))
                 .Setup(x => x.Value1, "EnvironmentMethod1()")
-//                .Setup(x => x.Value2, "1 + EnvironmentValue")
-//                .Setup(x => x.Value3, "TwoHours")
+                .Setup(x => x.Value2, "1 + EnvironmentMethod1()")
                 ;
             
             var target = classBuilder.BuildObject();
 
-            Assert.AreEqual(1212, target.Value1);                   // "EnvironmentValue"
-//            Assert.AreEqual(31338, target.Value2);                   // "1 + EnvironmentValue"
-//            Assert.AreEqual(TimeSpan.FromHours(2), target.Value3);   // "TwoHours"
+            Assert.AreEqual(1212, target.Value1);                   // "EnvironmentMethod1()"
+            Assert.AreEqual(1213, target.Value2);                   // "1 + EnvironmentMethod1()"
         }
 
         #region TestHelpers
