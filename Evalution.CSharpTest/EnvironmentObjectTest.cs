@@ -82,6 +82,19 @@ namespace Evalution.CSharpTest
         }
 
         [Test]
+        public void MethodTest_VirtualCall()
+        {
+            var classBuilder = new ClassBuilder<TargetClass>()
+                .AddEnvironment(typeof(TimeSpan))
+                .Setup(x => x.Value1, "FromHours(3.0).TotalMinutes")
+                ;
+
+            var target = classBuilder.BuildObject();
+
+            Assert.AreEqual(180, target.Value1); // "FromHours(3.0).TotalMinutes"
+        }
+
+        [Test]
         public void MethodTest_TimeSpan()
         {
             var classBuilder = new ClassBuilder<TargetClass>()
@@ -91,7 +104,7 @@ namespace Evalution.CSharpTest
             
             var target = classBuilder.BuildObject();
 
-            Assert.AreEqual(TimeSpan.FromHours(3), target.Value3); // "EnvironmentMethodSum(EnvironmentMethod1(), EnvironmentMethod2(1))"
+            Assert.AreEqual(TimeSpan.FromHours(3), target.Value3); // "FromHours(3.0)"
         }
 
         #region TestHelpers
