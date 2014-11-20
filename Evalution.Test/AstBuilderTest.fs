@@ -132,7 +132,7 @@ type AstBuilderTest() =
         let expectedResult =
             Ast.MultiCallExpression (
                 Ast.CurrentContextMethodCall(
-                    Ast.Identifier("method"),
+                    "method",
                     [
                         Ast.LiteralExpression(
                             Ast.DoubleLiteral(1.0)
@@ -155,7 +155,7 @@ type AstBuilderTest() =
         let expectedResult =
             Ast.MultiCallExpression (
                 Ast.CurrentContextMethodCall(
-                    Ast.Identifier("method"),
+                    "method",
                     []
                 )
             )
@@ -168,7 +168,7 @@ type AstBuilderTest() =
         
         let expectedResult =
             Ast.MultiCallExpression(
-                Ast.CurrentContextPropertyCall(Ast.Identifier("var1")))
+                Ast.CurrentContextPropertyCall("var1"))
 
         Assert.AreEqual(expectedResult, result)
 
@@ -180,9 +180,9 @@ type AstBuilderTest() =
             Ast.MultiCallExpression(
                 Ast.ObjectContextPropertyCall(
                     Ast.ObjectContextPropertyCall(
-                        Ast.CurrentContextPropertyCall(Ast.Identifier("var1"))
-                        , Ast.Identifier("var2")
-                    ), Ast.Identifier("var3")
+                        Ast.CurrentContextPropertyCall("var1")
+                        , "var2"
+                    ), "var3"
                 )
             )
 
@@ -196,10 +196,10 @@ type AstBuilderTest() =
             Ast.MultiCallExpression(
                 Ast.ObjectContextPropertyCall(
                     Ast.ArrayElementCall(
-                        Ast.CurrentContextPropertyCall(Ast.Identifier("array")),
+                        Ast.CurrentContextPropertyCall("array"),
                         Ast.LiteralExpression(Ast.Int32Literal(12))
                     ),
-                    Ast.Identifier("Item")
+                    "Item"
                 )
             )
 
@@ -213,7 +213,7 @@ type AstBuilderTest() =
             Ast.MultiCallExpression(
                 Ast.ArrayElementCall(
                     Ast.ArrayElementCall(
-                        Ast.CurrentContextPropertyCall(Ast.Identifier("array")),
+                        Ast.CurrentContextPropertyCall("array"),
                         Ast.LiteralExpression(Ast.Int32Literal(12))
                     ),
                     Ast.LiteralExpression(Ast.Int32Literal(3))

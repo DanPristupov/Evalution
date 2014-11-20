@@ -20,15 +20,14 @@ and BinaryOperator =
     | Multiply
     | Divide
 
-and IdentifierRef = // TODO: Why IdentifierRef? Rename to Identifier
-    | Identifier of string
+and Identifier = string
 
 and Arguments = Expression list
 
 and Multicall =
-    | CurrentContextMethodCall of IdentifierRef * Arguments
-    | CurrentContextPropertyCall of IdentifierRef
-    | ObjectContextPropertyCall of Multicall * IdentifierRef
+    | CurrentContextMethodCall of Identifier * Arguments
+    | CurrentContextPropertyCall of Identifier
+    | ObjectContextPropertyCall of Multicall * Identifier
     | ArrayElementCall of Multicall * Expression
 
 and UnaryOperator =

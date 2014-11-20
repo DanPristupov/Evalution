@@ -23,7 +23,7 @@
         let closeSquare = configurator.CreateTerminal(@"\]")
         let openParen = configurator.CreateTerminal(@"\(")
         let closeParen = configurator.CreateTerminal(@"\)")
-        let identifier = configurator.CreateTerminal(@"[a-zA-Z_][a-zA-Z_0-9]*", fun x -> box(Ast.Identifier(x)))
+        let identifier = configurator.CreateTerminal(@"[a-zA-Z_][a-zA-Z_0-9]*", fun x -> box(x))
         let timeSpan = configurator.CreateTerminal(@"TimeSpan\.FromHours")
 
         configurator.LeftAssociative(plus, minus, exclamation) |> ignore
@@ -76,18 +76,18 @@
             .SetReduceFunction(fun x -> box (Ast.MultiCallExpression(x.[0] :?> Ast.Multicall)) )
 
         // Method call
-        multiCallExpressionSpec.AddProduction(identifier, openParen, optionalArgumentsSpec, closeParen) // todo: must be optionalArguments
+        multiCallExpressionSpec.AddProduction(identifier, openParen, optionalArgumentsSpec, closeParen)
             .SetReduceFunction(fun x -> box (Ast.CurrentContextMethodCall(
-                                                x.[0] :?> Ast.IdentifierRef,
+                                                x.[0] :?> string,
                                                 x.[2] :?> Ast.Arguments)) )
 
         // Property call
         multiCallExpressionSpec.AddProduction(identifier)
-            .SetReduceFunction(fun x -> box (Ast.CurrentContextPropertyCall(x.[0] :?> Ast.IdentifierRef)) )
+            .SetReduceFunction(fun x -> box (Ast.CurrentContextPropertyCall(x.[0] :?> string)) )
 
         // Subproperty call
         multiCallExpressionSpec.AddProduction(multiCallExpressionSpec, dot, identifier)
-            .SetReduceFunction(fun x -> box (Ast.ObjectContextPropertyCall(x.[0] :?>Ast.Multicall, x.[2] :?>Ast.IdentifierRef)) )
+            .SetReduceFunction(fun x -> box (Ast.ObjectContextPropertyCall(x.[0] :?>Ast.Multicall, x.[2] :?> string)) )
 
         // Array element call
         multiCallExpressionSpec.AddProduction(multiCallExpressionSpec, openSquare, expressionSpec, closeSquare)

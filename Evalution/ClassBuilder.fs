@@ -92,13 +92,11 @@ type public ClassBuilder(targetType:Type) =
                         targetProperty.PropertyType
                     match multicallExpression with
                     | Ast.CurrentContextPropertyCall (identifier) ->
-                        let (Ast.Identifier targetPropertyName) = identifier
-                        let (target, property) = getCurrentContextProperty targetPropertyName
+                        let (target, property) = getCurrentContextProperty identifier
                         property.ReturnType
                     | Ast.ObjectContextPropertyCall (prevCall, identifier) ->
                         let subPropertyType = getMultiCallExpressionType(prevCall, objType)
-                        let (Ast.Identifier targetPropertyName) = identifier
-                        getPropertyType(getProperties(subPropertyType), targetPropertyName)
+                        getPropertyType(getProperties(subPropertyType), identifier)
                     | Ast.ArrayElementCall (prevCall, _) ->
                         let subPropertyType = getMultiCallExpressionType(prevCall, objType)
                         subPropertyType.GetElementType()
@@ -130,19 +128,17 @@ type public ClassBuilder(targetType:Type) =
                         propertyMethod.ReturnType
 
                     match multicall with
-                    | Ast.CurrentContextPropertyCall (identifier) -> // TODO: this must be CurrentContextPropertyCall
-                        let (Ast.Identifier targetPropertyName) = identifier
-                        let (target, property) = getCurrentContextProperty targetPropertyName
+                    | Ast.CurrentContextPropertyCall (identifier) ->
+                        let (target, property) = getCurrentContextProperty identifier
                         if target = thisType then
                             emitter.LoadArgument(uint16 0) |> ignore    // Emit: load 'this' reference onto stack
-                            createPropertyCall(getProperties(targetType), targetPropertyName)
+                            createPropertyCall(getProperties(targetType), identifier)
                         else
                             createStaticPropertyCall(property)
 
                     | Ast.ObjectContextPropertyCall (prevCall, identifier) ->
                         let subPropertyType = generateMulticallBody(prevCall, thisType)
-                        let (Ast.Identifier targetPropertyName) = identifier
-                        createPropertyCall(getProperties(subPropertyType), targetPropertyName)
+                        createPropertyCall(getProperties(subPropertyType), identifier)
                     | Ast.ArrayElementCall (prevCall, expr) ->
                         let subPropertyType = generateMulticallBody(prevCall, thisType)
                         generateMethodBody expr
