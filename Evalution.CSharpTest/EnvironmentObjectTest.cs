@@ -60,12 +60,25 @@ namespace Evalution.CSharpTest
         {
             var classBuilder = new ClassBuilder<TargetClass>()
                 .AddEnvironment(typeof (EnvironmentClass))
-                .Setup(x => x.Value1, "EnvironmentMethod3(1, 2)")
+                .Setup(x => x.Value1, "EnvironmentMethodSum(1, 2)")
                 ;
             
             var target = classBuilder.BuildObject();
 
             Assert.AreEqual(3, target.Value1);                   // "EnvironmentMethod2(1, 2)"
+        }
+
+        [Test]
+        public void MethodTest_SubCalls()
+        {
+            var classBuilder = new ClassBuilder<TargetClass>()
+                .AddEnvironment(typeof (EnvironmentClass))
+                .Setup(x => x.Value1, "EnvironmentMethodSum(EnvironmentMethod1(), EnvironmentMethod2(1))")
+                ;
+            
+            var target = classBuilder.BuildObject();
+
+            Assert.AreEqual(1214, target.Value1); // "EnvironmentMethodSum(EnvironmentMethod1(), EnvironmentMethod2(1))"
         }
 
         #region TestHelpers
@@ -89,7 +102,7 @@ namespace Evalution.CSharpTest
                 return arg + 1;
             }
 
-            public static int EnvironmentMethod3(int arg1, int arg2)
+            public static int EnvironmentMethodSum(int arg1, int arg2)
             {
                 return arg1 + arg2;
             }
