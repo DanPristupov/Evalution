@@ -2,8 +2,9 @@
 open System
 open System.Reflection
 open System.Reflection.Emit
-open Sigil
 open Sigil.NonGeneric
+
+open EvalutionErrors
 
 type PropertyExpression = {Property : PropertyInfo; Expr: string }
 // TODO: create a function to receive a list of type properties (with caching)
@@ -119,7 +120,7 @@ type public ClassBuilder(targetType:Type) =
 
                         match result with
                         | Some(obj, (success, property)) -> (obj, property)
-                        | _ -> raise (new InvalidNameException ((sprintf "Cannot find name '%s' in the current context." propertyName), propertyName))
+                        | _ -> raise (invalidNameError propertyName)
 
                     let createPropertyCall (typeProperties : PropertyInfo[], propertyName) =
                         let targetProperty = typeProperties |> Seq.find(fun x -> x.Name = propertyName) // todo: findOrEmpty. Throw an exception that property 'XX' cannot be found in the class 'YY"
