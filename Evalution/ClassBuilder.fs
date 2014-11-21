@@ -175,6 +175,11 @@ type public ClassBuilder(targetType:Type) =
                             createStaticMethodCall(method)
                     | Ast.ObjectContextMethodCall (prevCall, identifier, arguments) ->
                         let subPropertyType = generateMulticallBody(prevCall, thisType)
+                        if subPropertyType.IsValueType && not(subPropertyType.IsPrimitive) then
+                            emitter.DeclareLocal(subPropertyType, "value1") |> ignore
+                            emitter.StoreLocal("value1") |> ignore
+                            emitter.LoadLocalAddress("value1") |> ignore
+
                         arguments |> Seq.iter(fun expr -> generateMethodBody expr)
                         createMethodCall(getMethods(subPropertyType), identifier)
 
@@ -187,6 +192,10 @@ type public ClassBuilder(targetType:Type) =
                             createStaticPropertyCall(property)
                     | Ast.ObjectContextPropertyCall (prevCall, identifier) ->
                         let subPropertyType = generateMulticallBody(prevCall, thisType)
+                        if subPropertyType.IsValueType && not(subPropertyType.IsPrimitive) then
+                            emitter.DeclareLocal(subPropertyType, "value1") |> ignore
+                            emitter.StoreLocal("value1") |> ignore
+                            emitter.LoadLocalAddress("value1") |> ignore
                         createPropertyCall(getProperties(subPropertyType), identifier)
                     | Ast.ArrayElementCall (prevCall, expr) ->
                         let subPropertyType = generateMulticallBody(prevCall, thisType)

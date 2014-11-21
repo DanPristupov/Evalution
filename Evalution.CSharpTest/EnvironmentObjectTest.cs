@@ -86,12 +86,12 @@ namespace Evalution.CSharpTest
         {
             var classBuilder = new ClassBuilder<TargetClass>()
                 .AddEnvironment(typeof(TimeSpan))
-                .Setup(x => x.Value1, "FromHours(3.0).TotalMinutes")
+                .Setup(x => x.ValueDouble, "FromHours(3.0).TotalMinutes")
                 ;
 
             var target = classBuilder.BuildObject();
 
-            Assert.AreEqual(180, target.Value1); // "FromHours(3.0).TotalMinutes"
+            Assert.AreEqual(180, target.ValueDouble); // "FromHours(3.0).TotalMinutes"
         }
 
         [Test]
@@ -113,6 +113,7 @@ namespace Evalution.CSharpTest
         {
             public virtual int Value1 { get; set; }
             public virtual int Value2 { get; set; }
+            public virtual double ValueDouble { get; set; }
             public virtual TimeSpan Value3 { get; set; }
             public virtual DateTime Value4 { get; set; }
         }
