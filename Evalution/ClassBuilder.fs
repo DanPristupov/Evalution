@@ -143,14 +143,15 @@ type public ClassBuilder(targetType:Type) =
                 | Ast.MultiCallExpression(multicallExpr) -> getMultiCallExpressionType(multicallExpr, objType)
                 | _ -> failwith "Unknown expression"
 
-            let getTypeProperty t propertyName =
-                match getProperties(t) |> Seq.tryFind(fun x -> x.Name = propertyName) with
-                    | Some (p) -> p
-                    | None -> raise (invalidNameError propertyName)
             let getTypeMethod t methodName =
                 match getMethods(t) |> Seq.tryFind(fun x -> x.Name = methodName) with
                     | Some (m) -> m
                     | None -> raise (invalidNameError methodName)
+            let getTypePropertyMethod t propertyName =
+                match getProperties(t) |> Seq.tryFind(fun x -> x.Name = propertyName) with
+                    | Some (p) -> p.GetGetMethod()
+                    | None -> raise (invalidNameError propertyName)
+
             let rec generateMethodBody (program: Ast.Program) =
                 let rec generateMulticallBody (multicall: Ast.Multicall, thisType: Type) =
 
@@ -162,21 +163,13 @@ type public ClassBuilder(targetType:Type) =
                         emitter.Call(m) |> ignore
                         m.ReturnType
 
-                    let createPropertyCall (t: Type, propertyName) =
-                        let targetProperty = getTypeProperty t propertyName 
-                        let getMethodPropertyInfo = targetProperty.GetGetMethod()
-                        createNonStaticMethodCall getMethodPropertyInfo
-                    let createMethodCall (t: Type, methodName) =
-                        let targetMethod = getTypeMethod t methodName 
-                        createNonStaticMethodCall targetMethod
-
                     match multicall with
                     | Ast.CurrentContextMethodCall (identifier, arguments) ->
                         let (target, m) = getDefaultContextMethod identifier
                         if target = thisType then
                             emitter.LoadArgument(uint16 0) |> ignore    // Emit: load 'this' reference onto stack
                             arguments |> Seq.iter(fun expr -> generateMethodBody expr)
-                            createMethodCall(targetType, identifier)
+                            createNonStaticMethodCall m
                         else
                             arguments |> Seq.iter(fun expr -> generateMethodBody expr)
                             createStaticMethodCall(m)
@@ -184,7 +177,7 @@ type public ClassBuilder(targetType:Type) =
                         let (target, propertyMethod) = getDefaultContextProperty identifier
                         if target = thisType then
                             emitter.LoadArgument(uint16 0) |> ignore    // Emit: load 'this' reference onto stack
-                            createPropertyCall(targetType, identifier)
+                            createNonStaticMethodCall propertyMethod
                         else
                             createStaticMethodCall(propertyMethod)
 
@@ -196,14 +189,14 @@ type public ClassBuilder(targetType:Type) =
                             emitter.LoadLocalAddress("value1") |> ignore
 
                         arguments |> Seq.iter(fun expr -> generateMethodBody expr)
-                        createMethodCall(subPropertyType, identifier)
+                        createNonStaticMethodCall (getTypeMethod subPropertyType identifier)
                     | Ast.ObjectContextPropertyCall (prevCall, identifier) ->
                         let subPropertyType = generateMulticallBody(prevCall, thisType)
                         if subPropertyType.IsValueType && not(subPropertyType.IsPrimitive) then
                             emitter.DeclareLocal(subPropertyType, "value1") |> ignore
                             emitter.StoreLocal("value1") |> ignore
                             emitter.LoadLocalAddress("value1") |> ignore
-                        createPropertyCall(subPropertyType, identifier)
+                        createNonStaticMethodCall (getTypePropertyMethod subPropertyType identifier)
                     | Ast.ArrayElementCall (prevCall, expr) ->
                         let subPropertyType = generateMulticallBody(prevCall, thisType)
                         generateMethodBody expr
