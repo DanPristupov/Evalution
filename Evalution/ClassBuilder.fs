@@ -173,6 +173,11 @@ type public ClassBuilder(targetType:Type) =
                         else
                             arguments |> Seq.iter(fun expr -> generateMethodBody expr)
                             createStaticMethodCall(method)
+                    | Ast.ObjectContextMethodCall (prevCall, identifier, arguments) ->
+                        let subPropertyType = generateMulticallBody(prevCall, thisType)
+                        arguments |> Seq.iter(fun expr -> generateMethodBody expr)
+                        createMethodCall(getMethods(subPropertyType), identifier)
+
                     | Ast.CurrentContextPropertyCall (identifier) ->
                         let (target, property) = getCurrentContextProperty identifier
                         if target = thisType then
@@ -180,7 +185,6 @@ type public ClassBuilder(targetType:Type) =
                             createPropertyCall(getProperties(targetType), identifier)
                         else
                             createStaticPropertyCall(property)
-
                     | Ast.ObjectContextPropertyCall (prevCall, identifier) ->
                         let subPropertyType = generateMulticallBody(prevCall, thisType)
                         createPropertyCall(getProperties(subPropertyType), identifier)
