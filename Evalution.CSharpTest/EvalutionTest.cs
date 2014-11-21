@@ -228,13 +228,12 @@ namespace Evalution.CSharpTest
         {
             var start = new DateTime(2000, 1, 1);
             var classBuilder = new ClassBuilder<ClassDateTime>()
-                .AddEnvironment(typeof(TimeSpan))
                 .Setup(x => x.DependentValue1, "Start.AddHours(2.0)")
                 ;
 
             var target = classBuilder.BuildObject();
             target.Start = start;
-            Assert.AreEqual(start.AddHours(2.0), target.DependentValue1); // "FromHours(3.0).TotalMinutes"
+            Assert.AreEqual(start.AddHours(2.0), target.DependentValue1); // "Start.AddHours(2.0)"
         }
 
         [Test]
