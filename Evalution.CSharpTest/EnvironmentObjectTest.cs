@@ -68,6 +68,18 @@ namespace Evalution.CSharpTest
             Assert.AreEqual(3, target.Value1);                   // "EnvironmentMethod2(1, 2)"
         }
 
+        [Test] // todo: move this test to another class
+        public void MethodTest_CallChain()
+        {
+            var classBuilder = new ClassBuilder<TargetClass>()
+                .Setup(x => x.Value1, "1 + SubItem(4).SubItem(4).Value1")
+                ;
+            
+            var target = classBuilder.BuildObject();
+            
+            Assert.AreEqual(5, target.Value1);                   // "1 + SubItem(4).Value1"
+        }
+
         [Test]
         public void MethodTest_SubCalls()
         {
@@ -116,6 +128,11 @@ namespace Evalution.CSharpTest
             public virtual double ValueDouble { get; set; }
             public virtual TimeSpan Value3 { get; set; }
             public virtual DateTime Value4 { get; set; }
+
+            public TargetClass SubItem(int val)
+            {
+                return new TargetClass { Value1 = val };
+            }
         }
 
         public static class EnvironmentClass

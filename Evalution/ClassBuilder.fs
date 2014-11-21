@@ -8,7 +8,6 @@ open Sigil.NonGeneric
 open EvalutionErrors
 
 type PropertyExpression = {Property : PropertyInfo; Expr: string }
-// TODO: create a function to receive a list of type properties (with caching)
 type public ClassBuilder(targetType:Type) =
 
     let environmentClasses = new ResizeArray<Type>()
@@ -116,13 +115,21 @@ type public ClassBuilder(targetType:Type) =
                     let getPropertyType (typeProperties : PropertyInfo[], propertyName) =
                         let targetProperty = typeProperties |> Seq.find(fun x -> x.Name = propertyName)
                         targetProperty.PropertyType
+
+                    let getMethodType (typeMethods : MethodInfo[], methodName) =
+                        let targetMethod = typeMethods |> Seq.find(fun x -> x.Name = methodName)
+                        targetMethod.ReturnType
+
                     match multicallExpression with
-                    | Ast.CurrentContextMethodCall (identifier, arguments) ->
-                        let (target, method) = getDefaultContextMethod identifier
-                        method.ReturnType
+                    | Ast.CurrentContextMethodCall (identifier, _) ->
+                        let (_, m) = getDefaultContextMethod identifier
+                        m.ReturnType
                     | Ast.CurrentContextPropertyCall (identifier) ->
-                        let (target, property) = getDefaultContextProperty identifier
-                        property.ReturnType
+                        let (_, p) = getDefaultContextProperty identifier
+                        p.ReturnType
+                    | Ast.ObjectContextMethodCall (prevCall, identifier, _) ->
+                        let subPropertyType = getMultiCallExpressionType(prevCall, objType)
+                        getMethodType(getMethods(subPropertyType), identifier)
                     | Ast.ObjectContextPropertyCall (prevCall, identifier) ->
                         let subPropertyType = getMultiCallExpressionType(prevCall, objType)
                         getPropertyType(getProperties(subPropertyType), identifier)
@@ -138,7 +145,7 @@ type public ClassBuilder(targetType:Type) =
                     | Ast.BoolLiteral(_) -> typeof<bool>
                     | Ast.Int32Literal(_) -> typeof<int>
                     | Ast.DoubleLiteral(_) -> typeof<float>
-                | Ast.UnaryExpression(_,expr) -> getExpressionType expr objType
+                | Ast.UnaryExpression(_, expr) -> getExpressionType expr objType
                 | Ast.TimeSpanExpression(_) -> typeof<TimeSpan>
                 | Ast.MultiCallExpression(multicallExpr) -> getMultiCallExpressionType(multicallExpr, objType)
                 | _ -> failwith "Unknown expression"
