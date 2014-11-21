@@ -224,6 +224,32 @@ namespace Evalution.CSharpTest
         }
 
         [Test]
+        public void MethodCallTest_ValueType()
+        {
+            var start = new DateTime(2000, 1, 1);
+            var classBuilder = new ClassBuilder<ClassDateTime>()
+                .AddEnvironment(typeof(TimeSpan))
+                .Setup(x => x.DependentValue1, "Start.AddHours(2.0)")
+                ;
+
+            var target = classBuilder.BuildObject();
+            target.Start = start;
+            Assert.AreEqual(start.AddHours(2.0), target.DependentValue1); // "FromHours(3.0).TotalMinutes"
+        }
+
+        [Test]
+        public void MethodCallTest_ReferenceType()
+        {
+            var classBuilder = new ClassBuilder<ClassInt32>()
+                .Setup(x => x.DependentValue1, "Multiply(3,4)")
+                ;
+
+            var target = classBuilder.BuildObject();
+            Assert.AreEqual(12, target.DependentValue1);    // "Multiply(3,4)"
+        }
+
+
+        [Test]
         public void GeneralTest_Dictionaries()
         {
             Assert.Fail("TODO");

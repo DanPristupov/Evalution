@@ -114,6 +114,7 @@ namespace Evalution.CSharpTest
             public virtual int Value1 { get; set; }
             public virtual int Value2 { get; set; }
             public virtual TimeSpan Value3 { get; set; }
+            public virtual DateTime Value4 { get; set; }
         }
 
         public static class EnvironmentClass
