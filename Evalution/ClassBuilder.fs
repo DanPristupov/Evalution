@@ -43,7 +43,7 @@ type public ClassBuilder(targetType:Type) =
         let findMethod (t:Type, methodName) =
             let methods = getMethods t
             match methods |> Seq.tryFind(fun x -> x.Name = methodName) with
-            | Some (method) -> (true, method)
+            | Some (m) -> (true, m)
             | None -> (false, null)
         // Priorities: CurrentObject, EnvironmentObject
         let result =
@@ -167,19 +167,19 @@ type public ClassBuilder(targetType:Type) =
                     | Ast.CurrentContextMethodCall (identifier, arguments) ->
                         let (target, m) = getDefaultContextMethod identifier
                         if target = thisType then
-                            emitter.LoadArgument(uint16 0) |> ignore    // Emit: load 'this' reference onto stack
+                            emitter.LoadArgument(uint16 0) |> ignore
                             arguments |> Seq.iter(fun expr -> generateMethodBody expr)
                             createNonStaticMethodCall m
                         else
                             arguments |> Seq.iter(fun expr -> generateMethodBody expr)
-                            createStaticMethodCall(m)
+                            createStaticMethodCall m
                     | Ast.CurrentContextPropertyCall (identifier) ->
-                        let (target, propertyMethod) = getDefaultContextProperty identifier
+                        let (target, m) = getDefaultContextProperty identifier
                         if target = thisType then
-                            emitter.LoadArgument(uint16 0) |> ignore    // Emit: load 'this' reference onto stack
-                            createNonStaticMethodCall propertyMethod
+                            emitter.LoadArgument(uint16 0) |> ignore
+                            createNonStaticMethodCall m
                         else
-                            createStaticMethodCall(propertyMethod)
+                            createStaticMethodCall m
 
                     | Ast.ObjectContextMethodCall (prevCall, identifier, arguments) ->
                         let subPropertyType = generateMulticallBody(prevCall, thisType)
@@ -216,10 +216,7 @@ type public ClassBuilder(targetType:Type) =
                         generateMethodBody leftExpr
                         generateMethodBody rightExpr
 
-                    let isPrimitiveType t =
-                        match t with
-                        | (x) when x = typeof<int> || x = typeof<float> -> true
-                        | _ -> false 
+                    let isPrimitiveType t = t = typeof<int> || t = typeof<float>
 
                     match operator with
                     | Ast.Add ->
