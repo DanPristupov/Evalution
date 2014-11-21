@@ -248,6 +248,21 @@ namespace Evalution.CSharpTest
             Assert.AreEqual(12, target.DependentValue1);    // "Multiply(3,4)"
         }
 
+        [Test]
+        public void MethodCallTest_ComplexObject()
+        {
+            var classBuilder = new ClassBuilder<ComplexObject>()
+                .Setup(x => x.DependentValue1, "ComplexChild.Multiply(3,5)");
+            var target = classBuilder.BuildObject();
+
+            target.ComplexChild = new ComplexObject
+            {
+                Child = new ClassInt32()
+            };
+
+            Assert.AreEqual(15, target.DependentValue1);   // "ComplexChild.Multiply(3,5)"
+        }
+
 
         [Test]
         public void GeneralTest_Dictionaries()
