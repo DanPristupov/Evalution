@@ -151,6 +151,10 @@ type public ClassBuilder(targetType:Type) =
                         let getMethodPropertyInfo = targetProperty.GetGetMethod()
                         emitter.CallVirtual(getMethodPropertyInfo) |> ignore
                         targetProperty.PropertyType
+                    let createMethodCall (methods : MethodInfo[], methodName) =
+                        let targetProperty = methods |> Seq.find(fun x -> x.Name = methodName) // todo: findOrEmpty. Throw an exception that property 'XX' cannot be found in the class 'YY"
+                        emitter.CallVirtual(targetProperty) |> ignore
+                        targetProperty.ReturnType
 
                     let createStaticPropertyCall (propertyMethod : MethodInfo) =
                         emitter.Call(propertyMethod) |> ignore
@@ -163,9 +167,9 @@ type public ClassBuilder(targetType:Type) =
                     | Ast.CurrentContextMethodCall (identifier, arguments) ->
                         let (target, method) = getDefaultContextMethod identifier
                         if target = thisType then
-                            failwith "not implemented"
                             emitter.LoadArgument(uint16 0) |> ignore    // Emit: load 'this' reference onto stack
-                            createPropertyCall(getProperties(targetType), identifier)
+                            arguments |> Seq.iter(fun expr -> generateMethodBody expr)
+                            createMethodCall(getMethods(targetType), identifier)
                         else
                             arguments |> Seq.iter(fun expr -> generateMethodBody expr)
                             createStaticMethodCall(method)
