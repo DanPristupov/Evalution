@@ -75,11 +75,17 @@
         expressionSpec.AddProduction(multiCallExpressionSpec)
             .SetReduceFunction(fun x -> box (Ast.MultiCallExpression(x.[0] :?> Ast.Multicall)) )
 
-        // Method call
+        // Default context method call
         multiCallExpressionSpec.AddProduction(identifier, openParen, optionalArgumentsSpec, closeParen)
             .SetReduceFunction(fun x -> box (Ast.CurrentContextMethodCall(
                                                 x.[0] :?> string,
                                                 x.[2] :?> Ast.Arguments)) )
+        // Object context method call
+        multiCallExpressionSpec.AddProduction(multiCallExpressionSpec, dot, identifier, openParen, optionalArgumentsSpec, closeParen)
+            .SetReduceFunction(fun x -> box (Ast.ObjectContextMethodCall(
+                                                x.[0] :?>Ast.Multicall,
+                                                x.[2] :?> string,
+                                                x.[4] :?> Ast.Arguments)) )
 
         // Property call
         multiCallExpressionSpec.AddProduction(identifier)

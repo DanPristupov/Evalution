@@ -28,6 +28,7 @@ and Multicall =
     | CurrentContextMethodCall of Identifier * Arguments
     | CurrentContextPropertyCall of Identifier
     | ObjectContextPropertyCall of Multicall * Identifier
+    | ObjectContextMethodCall of Multicall * Identifier * Arguments
     | ArrayElementCall of Multicall * Expression
 
 and UnaryOperator =

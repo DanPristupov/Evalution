@@ -149,6 +149,39 @@ type AstBuilderTest() =
         Assert.AreEqual(expectedResult, result)
 
     [<Test>]
+    member x.TestMethodChainCallExpression1 ()=
+        let result = AstBuilder.build "Method1(1).Method2(2)"
+
+        let expectedResult =
+            Ast.MultiCallExpression(
+                Ast.ObjectContextMethodCall(
+                    Ast.CurrentContextMethodCall(
+                        "Method1", [Ast.LiteralExpression(Ast.Int32Literal(1))]
+                    ), "Method2", [Ast.LiteralExpression(Ast.Int32Literal(2))]
+                )
+            )
+
+        Assert.AreEqual(expectedResult, result)
+
+    [<Test>]
+    member x.TestMethodChainCallExpression2 ()=
+        let result = AstBuilder.build "Method1(1).Prop1.Method2(2)"
+
+        let expectedResult =
+            Ast.MultiCallExpression(
+                Ast.ObjectContextMethodCall(
+                    Ast.ObjectContextPropertyCall(
+                        Ast.CurrentContextMethodCall(
+                            "Method1", [Ast.LiteralExpression(Ast.Int32Literal(1))]
+                        ),
+                        "Prop1" ),
+                    "Method2", [Ast.LiteralExpression(Ast.Int32Literal(2))]
+                )
+            )
+
+        Assert.AreEqual(expectedResult, result)
+
+    [<Test>]
     member x.TestMethodCallExpression_NoArguments ()=
         let result = AstBuilder.build "method()"
 
