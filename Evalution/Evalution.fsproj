@@ -46,7 +46,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Sigil">
-      <HintPath>..\packages\Sigil.4.2.2\lib\net40\Sigil.dll</HintPath>
+      <HintPath>..\packages\Sigil.4.3.0\lib\net40\Sigil.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
