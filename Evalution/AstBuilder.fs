@@ -7,6 +7,8 @@
         let expressionSpec = configurator.CreateNonTerminal()
         let multiCallExpressionSpec = configurator.CreateNonTerminal()
         let unaryExpressionSpec = configurator.CreateNonTerminal()
+        let argumentsSpec = configurator.CreateNonTerminal()
+        let optionalArgumentsSpec = configurator.CreateNonTerminal()
 
         let int32Literal = configurator.CreateTerminal(@"\d+", fun x -> box (Ast.Int32Literal (int x) ) )
         let doubleLiteral = configurator.CreateTerminal(@"\d+\.\d+", fun x -> box (Ast.DoubleLiteral (float x) ) )
@@ -16,11 +18,12 @@
         let asterisk = configurator.CreateTerminal(@"\*")
         let forwardSlash = configurator.CreateTerminal(@"/")
         let dot = configurator.CreateTerminal(@"\.")
+        let comma = configurator.CreateTerminal(@",")
         let openSquare = configurator.CreateTerminal(@"\[")
         let closeSquare = configurator.CreateTerminal(@"\]")
         let openParen = configurator.CreateTerminal(@"\(")
         let closeParen = configurator.CreateTerminal(@"\)")
-        let identifier = configurator.CreateTerminal(@"[a-zA-Z_][a-zA-Z_0-9]*", fun x -> box(Ast.Identifier(x)))
+        let identifier = configurator.CreateTerminal(@"[a-zA-Z_][a-zA-Z_0-9]*", fun x -> box(x))
         let timeSpan = configurator.CreateTerminal(@"TimeSpan\.FromHours")
 
         configurator.LeftAssociative(plus, minus, exclamation) |> ignore
@@ -44,11 +47,6 @@
         expressionSpec.AddProduction(expressionSpec, forwardSlash, expressionSpec)
             .SetReduceFunction(fun x -> box (Ast.BinaryExpression(x.[0] :?> Ast.Expression, Ast.Divide, x.[2] :?>Ast.Expression)))
 
-        // TimeSpanExpression
-        expressionSpec.AddProduction(timeSpan, openParen, expressionSpec, closeParen)
-            .SetReduceFunction(fun x -> box (Ast.TimeSpanExpression(
-                                                x.[2] :?> Ast.Expression
-                                                )) )
         // Literals
         expressionSpec.AddProduction(int32Literal)
             .SetReduceFunction(fun x -> box (Ast.LiteralExpression(x.[0]:?>Ast.Literal ) ))
@@ -72,10 +70,25 @@
         expressionSpec.AddProduction(multiCallExpressionSpec)
             .SetReduceFunction(fun x -> box (Ast.MultiCallExpression(x.[0] :?> Ast.Multicall)) )
 
+        // Default context method call
+        multiCallExpressionSpec.AddProduction(identifier, openParen, optionalArgumentsSpec, closeParen)
+            .SetReduceFunction(fun x -> box (Ast.CurrentContextMethodCall(
+                                                x.[0] :?> string,
+                                                x.[2] :?> Ast.Arguments)) )
+        // Object context method call
+        multiCallExpressionSpec.AddProduction(multiCallExpressionSpec, dot, identifier, openParen, optionalArgumentsSpec, closeParen)
+            .SetReduceFunction(fun x -> box (Ast.ObjectContextMethodCall(
+                                                x.[0] :?>Ast.Multicall,
+                                                x.[2] :?> string,
+                                                x.[4] :?> Ast.Arguments)) )
+
+        // Property call
         multiCallExpressionSpec.AddProduction(identifier)
-            .SetReduceFunction(fun x -> box (Ast.CurrentContextPropertyCall(x.[0] :?> Ast.IdentifierRef)) )
+            .SetReduceFunction(fun x -> box (Ast.CurrentContextPropertyCall(x.[0] :?> string)) )
+
+        // Subproperty call
         multiCallExpressionSpec.AddProduction(multiCallExpressionSpec, dot, identifier)
-            .SetReduceFunction(fun x -> box (Ast.ObjectContextPropertyCall(x.[0] :?>Ast.Multicall, x.[2] :?>Ast.IdentifierRef)) )
+            .SetReduceFunction(fun x -> box (Ast.ObjectContextPropertyCall(x.[0] :?>Ast.Multicall, x.[2] :?> string)) )
 
         // Array element call
         multiCallExpressionSpec.AddProduction(multiCallExpressionSpec, openSquare, expressionSpec, closeSquare)
@@ -83,7 +96,22 @@
                                                 x.[0] :?> Ast.Multicall,
                                                 x.[2] :?> Ast.Expression
                                                 )) )
+        
+        optionalArgumentsSpec.AddProduction(argumentsSpec).SetReduceToFirst()
+        optionalArgumentsSpec.AddProduction()
+            .SetReduceFunction(fun x -> box (List.empty<Ast.Expression>))
 
+        argumentsSpec.AddProduction(argumentsSpec, comma, expressionSpec)
+            .SetReduceFunction(fun x -> box(
+                        (x.[0] :?> Ast.Expression list)
+                        @
+                        ([x.[2] :?> Ast.Expression])
+                )
+            )
+        argumentsSpec.AddProduction(expressionSpec)
+            .SetReduceFunction(fun x -> box ([x.[0] :?> Ast.Expression]))
+
+        
         let parser = configurator.CreateParser()
         let result = parser.Parse(input)
 

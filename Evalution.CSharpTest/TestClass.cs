@@ -16,6 +16,10 @@ namespace Evalution.CSharpTest
 
         public virtual int DependentValue4 { get; set; }
 
+        public int Multiply(int value1, int value2)
+        {
+            return value1*value2;
+        }
     }
 
     public class ClassDouble
@@ -69,6 +73,11 @@ namespace Evalution.CSharpTest
         public virtual int DependentValue1 { get; set; }
 
         public virtual int DependentValue2 { get; set; }
+
+        public int Multiply(int value1, int value2)
+        {
+            return value1*value2;
+        }
     }
 
     public class ClassWithConstructor

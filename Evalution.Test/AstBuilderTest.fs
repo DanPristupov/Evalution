@@ -72,21 +72,6 @@ type AstBuilderTest() =
         Assert.AreEqual(expectedResult, result)
 
     [<Test>]
-    member x.TestTimeSpanLiteral ()=
-        let result = AstBuilder.build "TimeSpan.FromHours(4.0 * 2)"
-        
-        let expectedResult =
-            Ast.TimeSpanExpression(
-                Ast.BinaryExpression(
-                    Ast.LiteralExpression(Ast.DoubleLiteral(4.0)),
-                    Ast.Multiply,
-                    Ast.LiteralExpression(Ast.Int32Literal(2))
-                )
-            )
-
-        Assert.AreEqual(expectedResult, result)
-
-    [<Test>]
     member x.TestBinaryExpressionInt32DivideDouble ()=
         let result = AstBuilder.build "3/2"
         
@@ -125,25 +110,83 @@ type AstBuilderTest() =
 
         Assert.AreEqual(expectedResult, result)
 
-//    [<Test>]
-//    member x.TestIdentifierExpression ()=
-//        let result = AstBuilder.build "variable/2"
-//        
-//        let expectedResult =
-//            Ast.BinaryExpression(
-//                Ast.IdentifierExpression(Ast.Identifier("variable")),
-//                Ast.Divide,
-//                Ast.LiteralExpression(Ast.Int32Literal(2)))
-//
-//        Assert.AreEqual(expectedResult, result)
-//
+    [<Test>]
+    member x.TestMethodCallExpression ()=
+        let result = AstBuilder.build "method(1.0,2+3)"
+
+        let expectedResult =
+            Ast.MultiCallExpression (
+                Ast.CurrentContextMethodCall(
+                    "method",
+                    [
+                        Ast.LiteralExpression(
+                            Ast.DoubleLiteral(1.0)
+                        );
+                        Ast.BinaryExpression(
+                            Ast.LiteralExpression(Ast.Int32Literal(2)),
+                            Ast.Add,
+                            Ast.LiteralExpression(Ast.Int32Literal(3))
+                        )
+                    ]
+                )
+            )
+
+        Assert.AreEqual(expectedResult, result)
+
+    [<Test>]
+    member x.TestMethodChainCallExpression1 ()=
+        let result = AstBuilder.build "Method1(1).Method2(2)"
+
+        let expectedResult =
+            Ast.MultiCallExpression(
+                Ast.ObjectContextMethodCall(
+                    Ast.CurrentContextMethodCall(
+                        "Method1", [Ast.LiteralExpression(Ast.Int32Literal(1))]
+                    ), "Method2", [Ast.LiteralExpression(Ast.Int32Literal(2))]
+                )
+            )
+
+        Assert.AreEqual(expectedResult, result)
+
+    [<Test>]
+    member x.TestMethodChainCallExpression2 ()=
+        let result = AstBuilder.build "Method1(1).Prop1.Method2(2)"
+
+        let expectedResult =
+            Ast.MultiCallExpression(
+                Ast.ObjectContextMethodCall(
+                    Ast.ObjectContextPropertyCall(
+                        Ast.CurrentContextMethodCall(
+                            "Method1", [Ast.LiteralExpression(Ast.Int32Literal(1))]
+                        ),
+                        "Prop1" ),
+                    "Method2", [Ast.LiteralExpression(Ast.Int32Literal(2))]
+                )
+            )
+
+        Assert.AreEqual(expectedResult, result)
+
+    [<Test>]
+    member x.TestMethodCallExpression_NoArguments ()=
+        let result = AstBuilder.build "method()"
+
+        let expectedResult =
+            Ast.MultiCallExpression (
+                Ast.CurrentContextMethodCall(
+                    "method",
+                    []
+                )
+            )
+
+        Assert.AreEqual(expectedResult, result)
+
     [<Test>]
     member x.TestMultiCallExpression_Single ()=
         let result = AstBuilder.build "var1"
         
         let expectedResult =
             Ast.MultiCallExpression(
-                Ast.CurrentContextPropertyCall(Ast.Identifier("var1")))
+                Ast.CurrentContextPropertyCall("var1"))
 
         Assert.AreEqual(expectedResult, result)
 
@@ -155,9 +198,9 @@ type AstBuilderTest() =
             Ast.MultiCallExpression(
                 Ast.ObjectContextPropertyCall(
                     Ast.ObjectContextPropertyCall(
-                        Ast.CurrentContextPropertyCall(Ast.Identifier("var1"))
-                        , Ast.Identifier("var2")
-                    ), Ast.Identifier("var3")
+                        Ast.CurrentContextPropertyCall("var1")
+                        , "var2"
+                    ), "var3"
                 )
             )
 
@@ -171,10 +214,10 @@ type AstBuilderTest() =
             Ast.MultiCallExpression(
                 Ast.ObjectContextPropertyCall(
                     Ast.ArrayElementCall(
-                        Ast.CurrentContextPropertyCall(Ast.Identifier("array")),
+                        Ast.CurrentContextPropertyCall("array"),
                         Ast.LiteralExpression(Ast.Int32Literal(12))
                     ),
-                    Ast.Identifier("Item")
+                    "Item"
                 )
             )
 
@@ -188,7 +231,7 @@ type AstBuilderTest() =
             Ast.MultiCallExpression(
                 Ast.ArrayElementCall(
                     Ast.ArrayElementCall(
-                        Ast.CurrentContextPropertyCall(Ast.Identifier("array")),
+                        Ast.CurrentContextPropertyCall("array"),
                         Ast.LiteralExpression(Ast.Int32Literal(12))
                     ),
                     Ast.LiteralExpression(Ast.Int32Literal(3))

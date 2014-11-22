@@ -1,5 +1,6 @@
 ﻿namespace Evalution
 open System
+open System.Collections.Generic
 open System.Reflection
 open System.Reflection.Emit
 open Sigil.NonGeneric
@@ -7,12 +8,12 @@ open Sigil.NonGeneric
 open EvalutionErrors
 
 type PropertyExpression = {Property : PropertyInfo; Expr: string }
-// TODO: create a function to receive a list of type properties (with caching)
 type public ClassBuilder(targetType:Type) =
 
     let environmentClasses = new ResizeArray<Type>()
     let propertyExpressions = new ResizeArray<PropertyExpression>()
-    let typeProperties = new Collections.Generic.Dictionary<Type, PropertyInfo[]>()
+    let typeProperties = new Dictionary<Type, PropertyInfo[]>()
+    let typeMethods = new Dictionary<Type, MethodInfo[]>()
 
     let objectContexts =
         seq {
@@ -29,7 +30,31 @@ type public ClassBuilder(targetType:Type) =
             typeProperties.Add(t, properties)
             properties
 
-    let getCurrentContextProperty (propertyName) = // todo: rename to GetDefaultContextProperty
+    let getMethods (t:Type) :MethodInfo[] =
+        if typeMethods.ContainsKey(t) then
+            typeMethods.[t]
+        else
+            let methods = t.GetMethods()
+            typeMethods.Add(t, methods)
+            methods
+
+    let getDefaultContextMethod (methodName) =
+        let findMethod (t:Type, methodName) =
+            let methods = getMethods t
+            match methods |> Seq.tryFind(fun x -> x.Name = methodName) with
+            | Some (m) -> (true, m)
+            | None -> (false, null)
+        // Priorities: CurrentObject, EnvironmentObject
+        let result =
+            objectContexts
+            |> Seq.map(fun x -> (x, findMethod(x, methodName)))
+            |> Seq.tryFind(fun (obj, (success, property)) -> success)
+
+        match result with
+        | Some(obj, (success, method)) -> (obj, method)
+        | _ -> raise (invalidNameError methodName)
+
+    let getDefaultContextProperty (propertyName) =
         let findProperty (t:Type, propertyName) =
             let properties = getProperties t
             match properties |> Seq.tryFind(fun x -> x.Name = propertyName) with
@@ -90,15 +115,24 @@ type public ClassBuilder(targetType:Type) =
                     let getPropertyType (typeProperties : PropertyInfo[], propertyName) =
                         let targetProperty = typeProperties |> Seq.find(fun x -> x.Name = propertyName)
                         targetProperty.PropertyType
+
+                    let getMethodType (typeMethods : MethodInfo[], methodName) =
+                        let targetMethod = typeMethods |> Seq.find(fun x -> x.Name = methodName)
+                        targetMethod.ReturnType
+
                     match multicallExpression with
+                    | Ast.CurrentContextMethodCall (identifier, _) ->
+                        let (_, m) = getDefaultContextMethod identifier
+                        m.ReturnType
                     | Ast.CurrentContextPropertyCall (identifier) ->
-                        let (Ast.Identifier targetPropertyName) = identifier
-                        let (target, property) = getCurrentContextProperty targetPropertyName
-                        property.ReturnType
+                        let (_, p) = getDefaultContextProperty identifier
+                        p.ReturnType
+                    | Ast.ObjectContextMethodCall (prevCall, identifier, _) ->
+                        let subPropertyType = getMultiCallExpressionType(prevCall, objType)
+                        getMethodType(getMethods(subPropertyType), identifier)
                     | Ast.ObjectContextPropertyCall (prevCall, identifier) ->
                         let subPropertyType = getMultiCallExpressionType(prevCall, objType)
-                        let (Ast.Identifier targetPropertyName) = identifier
-                        getPropertyType(getProperties(subPropertyType), targetPropertyName)
+                        getPropertyType(getProperties(subPropertyType), identifier)
                     | Ast.ArrayElementCall (prevCall, _) ->
                         let subPropertyType = getMultiCallExpressionType(prevCall, objType)
                         subPropertyType.GetElementType()
@@ -111,38 +145,64 @@ type public ClassBuilder(targetType:Type) =
                     | Ast.BoolLiteral(_) -> typeof<bool>
                     | Ast.Int32Literal(_) -> typeof<int>
                     | Ast.DoubleLiteral(_) -> typeof<float>
-                | Ast.UnaryExpression(_,expr) -> getExpressionType expr objType
-                | Ast.TimeSpanExpression(_) -> typeof<TimeSpan>
+                | Ast.UnaryExpression(_, expr) -> getExpressionType expr objType
                 | Ast.MultiCallExpression(multicallExpr) -> getMultiCallExpressionType(multicallExpr, objType)
                 | _ -> failwith "Unknown expression"
+
+            let getTypeMethod t methodName =
+                match getMethods(t) |> Seq.tryFind(fun x -> x.Name = methodName) with
+                    | Some (m) -> m
+                    | None -> raise (invalidNameError methodName)
+            let getTypePropertyMethod t propertyName =
+                match getProperties(t) |> Seq.tryFind(fun x -> x.Name = propertyName) with
+                    | Some (p) -> p.GetGetMethod()
+                    | None -> raise (invalidNameError propertyName)
 
             let rec generateMethodBody (program: Ast.Program) =
                 let rec generateMulticallBody (multicall: Ast.Multicall, thisType: Type) =
 
-                    let createPropertyCall (typeProperties : PropertyInfo[], propertyName) =
-                        let targetProperty = typeProperties |> Seq.find(fun x -> x.Name = propertyName) // todo: findOrEmpty. Throw an exception that property 'XX' cannot be found in the class 'YY"
-                        let getMethodPropertyInfo = targetProperty.GetGetMethod()
-                        emitter.CallVirtual(getMethodPropertyInfo) |> ignore
-                        targetProperty.PropertyType
+                    let createNonStaticMethodCall (m: MethodInfo) =
+                        emitter.CallVirtual(m) |> ignore
+                        m.ReturnType
 
-                    let createStaticPropertyCall (propertyMethod : MethodInfo) =
-                        emitter.Call(propertyMethod) |> ignore
-                        propertyMethod.ReturnType
+                    let createStaticMethodCall (m : MethodInfo) =
+                        emitter.Call(m) |> ignore
+                        m.ReturnType
 
                     match multicall with
-                    | Ast.CurrentContextPropertyCall (identifier) -> // TODO: this must be CurrentContextPropertyCall
-                        let (Ast.Identifier targetPropertyName) = identifier
-                        let (target, property) = getCurrentContextProperty targetPropertyName
+                    | Ast.CurrentContextMethodCall (identifier, arguments) ->
+                        let (target, m) = getDefaultContextMethod identifier
                         if target = thisType then
-                            emitter.LoadArgument(uint16 0) |> ignore    // Emit: load 'this' reference onto stack
-                            createPropertyCall(getProperties(targetType), targetPropertyName)
+                            emitter.LoadArgument(uint16 0) |> ignore
+                            arguments |> Seq.iter(fun expr -> generateMethodBody expr)
+                            createNonStaticMethodCall m
                         else
-                            createStaticPropertyCall(property)
+                            arguments |> Seq.iter(fun expr -> generateMethodBody expr)
+                            createStaticMethodCall m
+                    | Ast.CurrentContextPropertyCall (identifier) ->
+                        let (target, m) = getDefaultContextProperty identifier
+                        if target = thisType then
+                            emitter.LoadArgument(uint16 0) |> ignore
+                            createNonStaticMethodCall m
+                        else
+                            createStaticMethodCall m
 
+                    | Ast.ObjectContextMethodCall (prevCall, identifier, arguments) ->
+                        let subPropertyType = generateMulticallBody(prevCall, thisType)
+                        if subPropertyType.IsValueType && not(subPropertyType.IsPrimitive) then
+                            emitter.DeclareLocal(subPropertyType, "value1") |> ignore // todo: there can be a problem with multiple variable
+                            emitter.StoreLocal("value1") |> ignore
+                            emitter.LoadLocalAddress("value1") |> ignore
+
+                        arguments |> Seq.iter(fun expr -> generateMethodBody expr)
+                        createNonStaticMethodCall (getTypeMethod subPropertyType identifier)
                     | Ast.ObjectContextPropertyCall (prevCall, identifier) ->
                         let subPropertyType = generateMulticallBody(prevCall, thisType)
-                        let (Ast.Identifier targetPropertyName) = identifier
-                        createPropertyCall(getProperties(subPropertyType), targetPropertyName)
+                        if subPropertyType.IsValueType && not(subPropertyType.IsPrimitive) then
+                            emitter.DeclareLocal(subPropertyType, "value1") |> ignore
+                            emitter.StoreLocal("value1") |> ignore
+                            emitter.LoadLocalAddress("value1") |> ignore
+                        createNonStaticMethodCall (getTypePropertyMethod subPropertyType identifier)
                     | Ast.ArrayElementCall (prevCall, expr) ->
                         let subPropertyType = generateMulticallBody(prevCall, thisType)
                         generateMethodBody expr
@@ -162,10 +222,7 @@ type public ClassBuilder(targetType:Type) =
                         generateMethodBody leftExpr
                         generateMethodBody rightExpr
 
-                    let isPrimitiveType t =
-                        match t with
-                        | (x) when x = typeof<int> || x = typeof<float> -> true
-                        | _ -> false 
+                    let isPrimitiveType t = t = typeof<int> || t = typeof<float>
 
                     match operator with
                     | Ast.Add ->
@@ -196,10 +253,6 @@ type public ClassBuilder(targetType:Type) =
                     | Ast.DoubleLiteral (v) ->
                         emitter.LoadConstant(v) |> ignore
                     | _ -> failwith "Unknown literal"
-                | Ast.TimeSpanExpression (expr) ->
-                    generateMethodBody expr
-                    let fromHoursMethod = typeof<TimeSpan>.GetMethod("FromHours")
-                    emitter.Call(fromHoursMethod) |> ignore
                 | Ast.UnaryExpression (uExp, expr) ->
                     match uExp with
                     | Ast.LogicalNegate ->

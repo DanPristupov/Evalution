@@ -116,9 +116,10 @@ namespace Evalution.CSharpTest
         public void GeneralTest_TimeSpan()
         {
             var classBuilder = new ClassBuilder<ClassDateTime>()
-                .Setup(x => x.ValueWithExpression1, "TimeSpan.FromHours(1.0 + 4.5 * 2.0)")
-                .Setup(x => x.ValueWithExpression2, "TimeSpan.FromHours(4.5) + TimeSpan.FromHours(2.5)")
-                .Setup(x => x.DependentValue3,      "ValueWithExpression2 - TimeSpan.FromHours(3.0)")
+                .AddEnvironment(typeof(TimeSpan))
+                .Setup(x => x.ValueWithExpression1, "FromHours(1.0 + 4.5 * 2.0)")
+                .Setup(x => x.ValueWithExpression2, "FromHours(4.5) + FromHours(2.5)")
+                .Setup(x => x.DependentValue3,      "ValueWithExpression2 - FromHours(3.0)")
                 ;
             var target = classBuilder.BuildObject();
 
@@ -132,9 +133,10 @@ namespace Evalution.CSharpTest
         {
             var start = new DateTime(2000, 1, 1);
             var classBuilder = new ClassBuilder<ClassDateTime>()
-                .Setup(x => x.ValueWithExpression1, "TimeSpan.FromHours(4.0) + TimeSpan.FromHours(1.0)")
+                .AddEnvironment(typeof(TimeSpan))
+                .Setup(x => x.ValueWithExpression1, "FromHours(4.0) + FromHours(1.0)")
                 .Setup(x => x.DependentValue1,      "Start + Duration")
-                .Setup(x => x.DependentValue2,      "Start + TimeSpan.FromHours(4.0)")
+                .Setup(x => x.DependentValue2,      "Start + FromHours(4.0)")
                 .Setup(x => x.DependentValue3,      "End - Start");
             var target = classBuilder.BuildObject();
 
@@ -203,9 +205,10 @@ namespace Evalution.CSharpTest
             var start = new DateTime(2000, 1, 1);
 
             var classBuilder = new ClassBuilder<ClassArray>()
+                .AddEnvironment(typeof (TimeSpan))
                 .Setup(x => x.DependentValue1, "IntValues[2] * 2")
                 .Setup(x => x.DependentValue2, "IntValues[1] + IntValues[2]")
-                .Setup(x => x.DependentValue3, "ComplexObjects[1].Duration + TimeSpan.FromHours(2.0)")
+                .Setup(x => x.DependentValue3, "ComplexObjects[1].Duration + FromHours(2.0)")
                 .Setup(x => x.DependentValue4, "ComplexObjects[1].Start + ComplexObjects[0].Duration")
                 ;
 
@@ -222,6 +225,46 @@ namespace Evalution.CSharpTest
             Assert.AreEqual(TimeSpan.FromHours(7.0), target.DependentValue3);   // "ComplexObjects[1].Duration + TimeSpan.FromHours(2.0)"
             Assert.AreEqual(start.AddHours(4), target.DependentValue4);         // "ComplexObjects[1].Start + ComplexObjects[0].Duration"
         }
+
+        [Test]
+        public void MethodCallTest_ValueType()
+        {
+            var start = new DateTime(2000, 1, 1);
+            var classBuilder = new ClassBuilder<ClassDateTime>()
+                .Setup(x => x.DependentValue1, "Start.AddHours(2.0)")
+                ;
+
+            var target = classBuilder.BuildObject();
+            target.Start = start;
+            Assert.AreEqual(start.AddHours(2.0), target.DependentValue1); // "Start.AddHours(2.0)"
+        }
+
+        [Test]
+        public void MethodCallTest_ReferenceType()
+        {
+            var classBuilder = new ClassBuilder<ClassInt32>()
+                .Setup(x => x.DependentValue1, "Multiply(3,4)")
+                ;
+
+            var target = classBuilder.BuildObject();
+            Assert.AreEqual(12, target.DependentValue1);    // "Multiply(3,4)"
+        }
+
+        [Test]
+        public void MethodCallTest_ComplexObject()
+        {
+            var classBuilder = new ClassBuilder<ComplexObject>()
+                .Setup(x => x.DependentValue1, "ComplexChild.Multiply(3,5)");
+            var target = classBuilder.BuildObject();
+
+            target.ComplexChild = new ComplexObject
+            {
+                Child = new ClassInt32()
+            };
+
+            Assert.AreEqual(15, target.DependentValue1);   // "ComplexChild.Multiply(3,5)"
+        }
+
 
         [Test]
         public void GeneralTest_Dictionaries()

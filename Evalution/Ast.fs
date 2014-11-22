@@ -7,7 +7,6 @@ and Expression =
     | LiteralExpression of Literal
     | UnaryExpression of UnaryOperator * Expression
     | MultiCallExpression of Multicall
-    | TimeSpanExpression of Expression // TODO: make of long (ticks)
 
 and Literal =
     | BoolLiteral of bool
@@ -20,12 +19,15 @@ and BinaryOperator =
     | Multiply
     | Divide
 
-and IdentifierRef =
-    | Identifier of string
-    
+and Identifier = string
+
+and Arguments = Expression list
+
 and Multicall =
-    | CurrentContextPropertyCall of IdentifierRef
-    | ObjectContextPropertyCall of Multicall * IdentifierRef
+    | CurrentContextMethodCall of Identifier * Arguments
+    | CurrentContextPropertyCall of Identifier
+    | ObjectContextPropertyCall of Multicall * Identifier
+    | ObjectContextMethodCall of Multicall * Identifier * Arguments
     | ArrayElementCall of Multicall * Expression
 
 and UnaryOperator =
