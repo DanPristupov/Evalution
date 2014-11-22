@@ -7,7 +7,6 @@ and Expression =
     | LiteralExpression of Literal
     | UnaryExpression of UnaryOperator * Expression
     | MultiCallExpression of Multicall
-    | TimeSpanExpression of Expression // TODO: make of long (ticks)
 
 and Literal =
     | BoolLiteral of bool

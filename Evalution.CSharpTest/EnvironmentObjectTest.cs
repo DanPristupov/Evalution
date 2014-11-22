@@ -107,7 +107,7 @@ namespace Evalution.CSharpTest
         }
 
         [Test]
-        public void MethodTest_TimeSpan()
+        public void MethodTest_TimeSpan1()
         {
             var classBuilder = new ClassBuilder<TargetClass>()
                 .AddEnvironment(typeof (TimeSpan))
@@ -117,6 +117,22 @@ namespace Evalution.CSharpTest
             var target = classBuilder.BuildObject();
 
             Assert.AreEqual(TimeSpan.FromHours(3), target.Value3); // "FromHours(3.0)"
+        }
+
+        [Test]
+        public void MethodTest_TimeSpan2()
+        {
+            var start = new DateTime(2000, 1, 1);
+            var classBuilder = new ClassBuilder<TargetClass>()
+                .AddEnvironment(typeof (EnvironmentClass))
+                .AddEnvironment(typeof (DateTime))
+                .Setup(x => x.Value3, "TwoHours + TwoHours")
+                .Setup(x => x.Value4, "Now + TwoHours")
+                ;
+            
+            var target = classBuilder.BuildObject();
+
+            Assert.AreEqual(TimeSpan.FromHours(4), target.Value3); // "FromHours(3.0)"
         }
 
         #region TestHelpers

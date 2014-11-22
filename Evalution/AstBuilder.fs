@@ -47,11 +47,6 @@
         expressionSpec.AddProduction(expressionSpec, forwardSlash, expressionSpec)
             .SetReduceFunction(fun x -> box (Ast.BinaryExpression(x.[0] :?> Ast.Expression, Ast.Divide, x.[2] :?>Ast.Expression)))
 
-        // TimeSpanExpression
-        expressionSpec.AddProduction(timeSpan, openParen, expressionSpec, closeParen)
-            .SetReduceFunction(fun x -> box (Ast.TimeSpanExpression(
-                                                x.[2] :?> Ast.Expression
-                                                )) )
         // Literals
         expressionSpec.AddProduction(int32Literal)
             .SetReduceFunction(fun x -> box (Ast.LiteralExpression(x.[0]:?>Ast.Literal ) ))

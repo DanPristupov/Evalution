@@ -146,7 +146,6 @@ type public ClassBuilder(targetType:Type) =
                     | Ast.Int32Literal(_) -> typeof<int>
                     | Ast.DoubleLiteral(_) -> typeof<float>
                 | Ast.UnaryExpression(_, expr) -> getExpressionType expr objType
-                | Ast.TimeSpanExpression(_) -> typeof<TimeSpan>
                 | Ast.MultiCallExpression(multicallExpr) -> getMultiCallExpressionType(multicallExpr, objType)
                 | _ -> failwith "Unknown expression"
 
@@ -254,10 +253,6 @@ type public ClassBuilder(targetType:Type) =
                     | Ast.DoubleLiteral (v) ->
                         emitter.LoadConstant(v) |> ignore
                     | _ -> failwith "Unknown literal"
-                | Ast.TimeSpanExpression (expr) ->
-                    generateMethodBody expr
-                    let fromHoursMethod = typeof<TimeSpan>.GetMethod("FromHours")
-                    emitter.Call(fromHoursMethod) |> ignore
                 | Ast.UnaryExpression (uExp, expr) ->
                     match uExp with
                     | Ast.LogicalNegate ->
