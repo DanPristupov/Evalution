@@ -107,10 +107,10 @@ namespace EvalutionCS.Ast
                 .SetReduceFunction(x =>new List<Expression>());
 
             argumentsSpec.AddProduction(argumentsSpec, comma, expressionSpec)
-                .SetReduceFunction(x => AddElementToList((List<Expression>)x[0], (Expression) x[2]));
+                .SetReduceFunction(x => AddElementToList((List<Expression>)x[0], (Expression)x[2]));
 
             argumentsSpec.AddProduction(expressionSpec)
-                .SetReduceFunction(x => (Expression) x[0]);
+                .SetReduceFunction(x => new List<Expression>() { (Expression)x[0] });
 
             var parser = configurator.CreateParser();
             var result = parser.Parse(input);
@@ -174,7 +174,6 @@ namespace EvalutionCS.Ast
             }
             return false;
         }
-
     }
     public class UnaryExpression : Expression
     {
@@ -186,6 +185,18 @@ namespace EvalutionCS.Ast
 
         public UnaryOperator UnaryOperator { get; set; }
         public Expression Expression { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is UnaryExpression)
+            {
+                var typedObj = obj as UnaryExpression;
+                return typedObj.UnaryOperator.Equals(UnaryOperator)
+                    && typedObj.Expression.Equals(Expression);
+            }
+            return false;
+        }
+
     }
     public class MultiCallExpression : Expression
     {
@@ -195,6 +206,17 @@ namespace EvalutionCS.Ast
         }
 
         public Multicall Multicall { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is MultiCallExpression)
+            {
+                var typedObj = obj as MultiCallExpression;
+                return typedObj.Multicall.Equals(Multicall);
+            }
+            return false;
+        }
+
     }
 
     public abstract class Literal
@@ -265,6 +287,24 @@ namespace EvalutionCS.Ast
 
         public string Identifier { get; set; }
         public List<Expression> Arguments { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is CurrentContextMethodCall)
+            {
+                var typedObj = obj as CurrentContextMethodCall;
+                for (var i = 0; i < Arguments.Count; i++)
+                {
+                    if (!Arguments[i].Equals(typedObj.Arguments[i]))
+                    {
+                        return false;
+                    }
+                }
+                return typedObj.Identifier.Equals(Identifier);
+            }
+            return false;
+        }
+
     }
     public class CurrentContextPropertyCall : Multicall
     {
@@ -274,6 +314,16 @@ namespace EvalutionCS.Ast
         }
 
         public string Identifier { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is CurrentContextPropertyCall)
+            {
+                return (obj as CurrentContextPropertyCall).Identifier.Equals(Identifier);
+            }
+            return false;
+        }
+
     }
     public class ObjectContextPropertyCall : Multicall
     {
@@ -285,6 +335,17 @@ namespace EvalutionCS.Ast
 
         public Multicall Multicall { get; set; }
         public string Identifier { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is ObjectContextPropertyCall)
+            {
+                return (obj as ObjectContextPropertyCall).Identifier.Equals(Identifier)
+                       && (obj as ObjectContextPropertyCall).Multicall.Equals(Multicall);
+            }
+            return false;
+        }
+
     }
     public class ObjectContextMethodCall : Multicall
     {
@@ -298,6 +359,25 @@ namespace EvalutionCS.Ast
         public Multicall Multicall { get; set; }
         public string Identifier { get; set; }
         public List<Expression> Arguments { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is ObjectContextMethodCall)
+            {
+                var typedObj = obj as ObjectContextMethodCall;
+                for (var i = 0; i < Arguments.Count; i++)
+                {
+                    if (!Arguments[i].Equals(typedObj.Arguments[i]))
+                    {
+                        return false;
+                    }
+                }
+                return typedObj.Identifier.Equals(Identifier)
+                    && typedObj.Multicall.Equals(Multicall);
+            }
+            return false;
+        }
+
     }
     public class ArrayElementCall : Multicall
     {
@@ -309,6 +389,17 @@ namespace EvalutionCS.Ast
 
         public Multicall Multicall { get; set; }
         public Expression Expression { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is ArrayElementCall)
+            {
+                return (obj as ArrayElementCall).Expression.Equals(Expression)
+                       && (obj as ArrayElementCall).Multicall.Equals(Multicall);
+            }
+            return false;
+        }
+
     }
     public enum BinaryOperator
     {
