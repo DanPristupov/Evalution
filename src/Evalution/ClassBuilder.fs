@@ -8,10 +8,12 @@ open Sigil.NonGeneric
 open EvalutionErrors
 
 type PropertyExpression = {Property : PropertyInfo; Expr: string }
+type NewPropertyExpression = {PropertyName : string; PropertyType: Type; Expr: string }
 type public ClassBuilder(targetType:Type) =
 
     let environmentClasses = new ResizeArray<Type>()
     let propertyExpressions = new ResizeArray<PropertyExpression>()
+    let newPropertyExpressions = new ResizeArray<NewPropertyExpression>()
     let typeProperties = new Dictionary<Type, PropertyInfo[]>()
     let typeMethods = new Dictionary<Type, MethodInfo[]>()
 
@@ -22,7 +24,7 @@ type public ClassBuilder(targetType:Type) =
                 yield environmentClass
         }
 
-    let getProperties (t:Type) :PropertyInfo[] =
+    let getBaseProperties (t:Type) :PropertyInfo[] =
         if typeProperties.ContainsKey(t) then
             typeProperties.[t]
         else
@@ -56,12 +58,12 @@ type public ClassBuilder(targetType:Type) =
 
     let getDefaultContextProperty (propertyName) =
         let findProperty (t:Type, propertyName) =
-            let properties = getProperties t
+            let properties = getBaseProperties t
             match properties |> Seq.tryFind(fun x -> x.Name = propertyName) with
             | Some (property) -> (true, property.GetGetMethod())
             | None -> (false, null)
 
-        // Priorities: CurrentObject, EnvironmentObject
+        // Priorities: RuntimeObject, BaseObject, EnvironmentObject
         let result =
             objectContexts
             |> Seq.map(fun x -> (x, findProperty(x, propertyName)))
@@ -132,7 +134,7 @@ type public ClassBuilder(targetType:Type) =
                         getMethodType(getMethods(subPropertyType), identifier)
                     | Ast.ObjectContextPropertyCall (prevCall, identifier) ->
                         let subPropertyType = getMultiCallExpressionType(prevCall, objType)
-                        getPropertyType(getProperties(subPropertyType), identifier)
+                        getPropertyType(getBaseProperties(subPropertyType), identifier)
                     | Ast.ArrayElementCall (prevCall, _) ->
                         let subPropertyType = getMultiCallExpressionType(prevCall, objType)
                         subPropertyType.GetElementType()
@@ -154,7 +156,7 @@ type public ClassBuilder(targetType:Type) =
                     | Some (m) -> m
                     | None -> raise (invalidNameError methodName)
             let getTypePropertyMethod t propertyName =
-                match getProperties(t) |> Seq.tryFind(fun x -> x.Name = propertyName) with
+                match getBaseProperties(t) |> Seq.tryFind(fun x -> x.Name = propertyName) with
                     | Some (p) -> p.GetGetMethod()
                     | None -> raise (invalidNameError propertyName)
 
@@ -270,14 +272,36 @@ type public ClassBuilder(targetType:Type) =
             emitter.Return() |> ignore
             emitter.CreateMethod()
 
-        let buildProperty (property:PropertyInfo, expression) =
-            let propertyBuilder = typeBuilder.DefineProperty(property.Name, PropertyAttributes.HasDefault, property.PropertyType, null);
-                
-            let getMethodBuilder = createGetPropertyMethodBuilder(property.Name, property.PropertyType, expression)
+//        let buildProperty (property:PropertyInfo, expression) =
+//            let propertyBuilder = typeBuilder.DefineProperty(property.Name, PropertyAttributes.HasDefault, property.PropertyType, null);
+//                
+//            let getMethodBuilder = createGetPropertyMethodBuilder(property.Name, property.PropertyType, expression)
+//            propertyBuilder.SetGetMethod(getMethodBuilder) |> ignore
+
+        let buildProperty (propertyName: string, propertyType: Type, isVirtual: bool, expression: string) =
+            let propertyBuilder = typeBuilder.DefineProperty(propertyName, PropertyAttributes.HasDefault, propertyType, null);
+            
+            let getMethodBuilder = createGetPropertyMethodBuilder(propertyName, propertyType, expression)
             propertyBuilder.SetGetMethod(getMethodBuilder) |> ignore
 
-        for propertyExpr in propertyExpressions do
-            buildProperty(propertyExpr.Property, propertyExpr.Expr)
+//        for propertyExpr in propertyExpressions do
+//            buildProperty(propertyExpr.Property, propertyExpr.Expr)
+        let baseProperties = getBaseProperties(targetType);
+
+        let getPropertyType propertyExpr =
+            match baseProperties |> Array.tryFind (fun x -> x.Name = propertyExpr.PropertyName) with
+            | Some(x) ->
+                if propertyExpr.PropertyType <> null && (propertyExpr.PropertyType <> x.PropertyType) then
+                    failwith "Property type in the base class must be the same as defined type."
+                (true, x.PropertyType)
+            | None -> 
+                if propertyExpr.PropertyType = null then
+                    failwith "Property type is unknown. Define property type or create a property in the base class."
+                (false, propertyExpr.PropertyType)
+
+        for propertyExpr in newPropertyExpressions do
+            let (isVirtual, propertyType) = getPropertyType propertyExpr
+            buildProperty(propertyExpr.PropertyName, propertyType, isVirtual, propertyExpr.Expr)
 
         typeBuilder.CreateType()
 
@@ -291,10 +315,18 @@ type public ClassBuilder(targetType:Type) =
     member this.Setup (property: string, expression: string) :ClassBuilder =
         if resultType <> null then failwith "Object has been already built and cannot be updated after that."
 
-        let propertyInfo = getProperties(targetType) |> Array.find (fun x -> x.Name = property) // todo: add an exception here
+        let propertyInfo = getBaseProperties(targetType) |> Array.find (fun x -> x.Name = property) // todo: add an exception here
         propertyExpressions.Add({ Property= propertyInfo; Expr = expression } )
         this
-
+    // todo: I can merge Setup and SetupRuntime methods
+    member this.SetupRuntime (property: string, propertyType: Type, expression: string) : ClassBuilder =
+        if resultType <> null then failwith "Object has been already built and cannot be updated after that."
+        let propertyExists = getBaseProperties(targetType) |> Array.exists (fun x -> x.Name = property)
+        if propertyExists then
+            failwith (sprintf "Property '%s' already exists in the base type." property)
+        newPropertyExpressions.Add({PropertyName = property; PropertyType = propertyType; Expr = expression})
+        this
+        
     member this.BuildObject ([<ParamArray>] parameters: Object[]):obj =
         if resultType = null then
             resultType <- createType targetType
