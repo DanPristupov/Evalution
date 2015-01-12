@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AstBuilderTest.cs" />
     <Compile Include="EvalutionTest.cs" />
     <Compile Include="EnvironmentObjectTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -51,6 +52,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\EvalutionCS\EvalutionCS.csproj">
+      <Project>{05434fba-2269-4e6b-a872-b9b9c3375840}</Project>
+      <Name>EvalutionCS</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Evalution\Evalution.fsproj">
       <Project>{062775db-ea04-4645-8982-ddd02dfcfa9f}</Project>
       <Name>Evalution</Name>

@@ -8,6 +8,7 @@
     using System.Reflection.Emit;
     using Ast;
     using Sigil.NonGeneric;
+    using Expression = Ast.Expression;
 
     public class ClassBuilder
     {
@@ -82,7 +83,7 @@
             return emitter.CreateMethod();
         }
 
-        private void GenerateMethodBody(Program program)
+        private void GenerateMethodBody(Expression expression)
         {
             throw new NotImplementedException();
         }

@@ -31,6 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Piglet">
+      <HintPath>..\packages\Piglet.1.4.0\lib\net40\Piglet.dll</HintPath>
+    </Reference>
     <Reference Include="Sigil">
       <HintPath>..\packages\Sigil.4.3.0\lib\net40\Sigil.dll</HintPath>
     </Reference>
