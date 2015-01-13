@@ -42,6 +42,8 @@
   <ItemGroup>
     <Compile Include="Ast\AstBuilder.cs" />
     <Compile Include="ClassBuilder.cs" />
+    <Compile Include="Exceptions\EvalutionException.cs" />
+    <Compile Include="Exceptions\InvalidNameException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PropertyDefinition.cs" />
   </ItemGroup>

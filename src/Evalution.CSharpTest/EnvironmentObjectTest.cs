@@ -3,6 +3,8 @@ using NUnit.Framework;
 
 namespace Evalution.CSharpTest
 {
+    using EvalutionCS;
+
     // todo: make a test that the injection target property is virtual or abstract
     // todo: make a test to check the variable name priorities: current class - environment static class, environment class
     [TestFixture]
