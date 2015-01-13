@@ -356,7 +356,7 @@ namespace EvalutionCS.Ast
             Arguments = arguments;
         }
 
-        public Multicall Multicall { get; set; }
+        public Multicall Multicall { get; set; } // rename to PrevCall
         public string Identifier { get; set; }
         public List<Expression> Arguments { get; set; }
 

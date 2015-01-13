@@ -8,7 +8,9 @@
     using System.Reflection.Emit;
     using Ast;
     using Sigil.NonGeneric;
+    using BinaryExpression = Ast.BinaryExpression;
     using Expression = Ast.Expression;
+    using UnaryExpression = Ast.UnaryExpression;
 
     public class ClassBuilder
     {
@@ -52,7 +54,7 @@
 
         private Type CreateType()
         {
-            var typeBuilder = CreateTypeBuilder(_resultType);
+            var typeBuilder = CreateTypeBuilder(_targetType);
 
             foreach (var propertyDefinition in _propertyDefinitions)
             {
@@ -78,15 +80,347 @@
                 MethodAttributes.Virtual,
                 CallingConventions.Standard | CallingConventions.HasThis);
 
-            GenerateMethodBody(AstBuilder.Build(propertyDefinition.Expression));
+            GenerateMethodBody(AstBuilder.Build(propertyDefinition.Expression), emitter);
             emitter.Return();
             return emitter.CreateMethod();
         }
 
-        private void GenerateMethodBody(Expression expression)
+        private void GenerateMethodBody(Expression expression, Emit emitter)
         {
-            throw new NotImplementedException();
+            if (expression is BinaryExpression)
+            {
+                var binaryExpression = expression as BinaryExpression;
+                var leftType = GetExpressionType(binaryExpression.LeftExpression);
+                var rightType = GetExpressionType(binaryExpression.RightExpression);
+
+                if (binaryExpression.BinaryOperator == BinaryOperator.Add)
+                {
+                    GenerateMethodBody(binaryExpression.LeftExpression, emitter);
+                    GenerateMethodBody(binaryExpression.RightExpression, emitter);
+                    if (IsPrimitiveType(leftType))
+                    {
+                        emitter.Add();
+                    }
+                    else
+                    {
+                        var addMethod = leftType.GetMethod("op_Addition", new[] {leftType, rightType});
+                        emitter.Call(addMethod);
+                    }
+                    return;
+                }
+                if (binaryExpression.BinaryOperator == BinaryOperator.Subtract)
+                {
+                    GenerateMethodBody(binaryExpression.LeftExpression, emitter);
+                    GenerateMethodBody(binaryExpression.RightExpression, emitter);
+                    if (IsPrimitiveType(leftType))
+                    {
+                        emitter.Subtract();
+                    }
+                    else
+                    {
+                        var subtractMethod = leftType.GetMethod("op_Subtraction", new[] { leftType, rightType });
+                        emitter.Call(subtractMethod);
+                    }
+                    return;
+                }
+                if (binaryExpression.BinaryOperator == BinaryOperator.Multiply)
+                {
+                    GenerateMethodBody(binaryExpression.LeftExpression, emitter);
+                    GenerateMethodBody(binaryExpression.RightExpression, emitter);
+                    emitter.Multiply();
+                    return;
+                }
+                if (binaryExpression.BinaryOperator == BinaryOperator.Divide)
+                {
+                    GenerateMethodBody(binaryExpression.LeftExpression, emitter);
+                    GenerateMethodBody(binaryExpression.RightExpression, emitter);
+                    emitter.Divide();
+                    return;
+                }
+                throw new Exception("Unknown binary operator");
+            }
+
+            if (expression is LiteralExpression)
+            {
+                var literalExpression = expression as LiteralExpression;
+                if (literalExpression.Literal is Int32Literal)
+                {
+                    emitter.LoadConstant((literalExpression.Literal as Int32Literal).Value);
+                    return;
+                }
+                if (literalExpression.Literal is DoubleLiteral)
+                {
+                    emitter.LoadConstant((literalExpression.Literal as DoubleLiteral).Value);
+                    return;
+                }
+                throw new Exception("Unknown literal");
+            }
+            if (expression is UnaryExpression)
+            {
+                var unaryExpression = expression as UnaryExpression;
+                if (unaryExpression.UnaryOperator == UnaryOperator.Negate)
+                {
+                    GenerateMethodBody(unaryExpression.Expression, emitter);
+                    emitter.Negate();
+                    return;
+                }
+                if (unaryExpression.UnaryOperator == UnaryOperator.Identity)
+                {
+                    // We do not need to do anything here.
+                    GenerateMethodBody(unaryExpression.Expression, emitter);
+                    return;
+                }
+                if (unaryExpression.UnaryOperator == UnaryOperator.LogicalNegate)
+                {
+                    throw new NotImplementedException("Logical negate is not implemented yet.");
+                }
+                throw new Exception("Unknown literal");
+            }
+            if (expression is MultiCallExpression)
+            {
+                var multiCallExpression = expression as MultiCallExpression;
+                GenerateMulticallBody(multiCallExpression.Multicall, emitter);
+                return;
+            }
+            throw new Exception("Unknown syntax tree element.");
         }
+
+        private Type GenerateMulticallBody(Multicall multicall, Emit emitter)
+        {
+            if (multicall is CurrentContextMethodCall)
+            {
+                var currentContextMethodCall = multicall as CurrentContextMethodCall;
+                var result = GetDefaultContextMethod(currentContextMethodCall.Identifier);
+                var target = result.Item1;
+                if (target == _targetType)
+                {
+                    emitter.LoadArgument((UInt16) 0);
+                    foreach (var expression in currentContextMethodCall.Arguments)
+                    {
+                        GenerateMethodBody(expression, emitter);
+                    }
+                    return CreateNonStaticMethodCall(result.Item2, emitter);
+                }
+                else
+                {
+                    foreach (var expression in currentContextMethodCall.Arguments)
+                    {
+                        GenerateMethodBody(expression, emitter);
+                    }
+                    return CreateStaticMethodCall(result.Item2, emitter);
+                }
+            }
+            if (multicall is CurrentContextPropertyCall)
+            {
+                var currentContextPropertyCall = multicall as CurrentContextPropertyCall;
+                var result = GetDefaultContextProperty(currentContextPropertyCall.Identifier);
+                var target = result.Item1;
+                if (target == _targetType)
+                {
+                    emitter.LoadArgument((UInt16) 0);
+                    return CreateNonStaticMethodCall(result.Item2, emitter);
+                }
+                else
+                {
+                    return CreateStaticMethodCall(result.Item2, emitter);
+                }
+            }
+            if (multicall is ObjectContextMethodCall)
+            {
+                var objectContextMethodCall = multicall as ObjectContextMethodCall;
+                var subPropertyType = GenerateMulticallBody(objectContextMethodCall.Multicall, emitter);
+                if (subPropertyType.IsValueType && !subPropertyType.IsPrimitive)
+                {
+                    emitter.DeclareLocal(subPropertyType, "value1");
+                    emitter.StoreLocal("value1");
+                    emitter.LoadLocalAddress("value1");
+                }
+                foreach (var expression in objectContextMethodCall.Arguments)
+                {
+                    GenerateMethodBody(expression, emitter);
+                }
+
+                return CreateNonStaticMethodCall(GetTypeMethod(subPropertyType, objectContextMethodCall.Identifier), emitter);
+            }
+            if (multicall is ObjectContextPropertyCall)
+            {
+                var objectContextPropertyCall = multicall as ObjectContextPropertyCall;
+                var subPropertyType = GenerateMulticallBody(objectContextPropertyCall.Multicall, emitter);
+                if (subPropertyType.IsValueType && !subPropertyType.IsPrimitive)
+                {
+                    emitter.DeclareLocal(subPropertyType, "value1");
+                    emitter.StoreLocal("value1");
+                    emitter.LoadLocalAddress("value1");
+                }
+
+                return CreateNonStaticMethodCall(GetTypePropertyMethod(subPropertyType, objectContextPropertyCall.Identifier), emitter);
+            }
+            if (multicall is ArrayElementCall)
+            {
+                var arrayElementCall = multicall as ArrayElementCall;
+                var subPropertyType = GenerateMulticallBody(arrayElementCall.Multicall, emitter);
+                GenerateMethodBody(arrayElementCall.Expression, emitter);
+                var elementType = subPropertyType.GetElementType();
+                emitter.LoadElement(elementType);
+                return elementType;
+            }
+            throw new Exception("Unknown multicall expression");
+        }
+
+        private MethodInfo GetTypeMethod(Type type, string methodName)
+        {
+            return GetMethods(type).First(x => x.Name == methodName);
+        }
+        private MethodInfo GetTypePropertyMethod(Type type, string propertyName)
+        {
+            return GetProperties(type).First(x => x.Name == propertyName).GetGetMethod();
+        }
+
+        private Type CreateNonStaticMethodCall(MethodInfo method, Emit emitter)
+        {
+            emitter.CallVirtual(method);
+            return method.ReturnType;
+        }
+        private Type CreateStaticMethodCall(MethodInfo method, Emit emitter)
+        {
+            emitter.Call(method);
+            return method.ReturnType;
+        }
+
+        private bool IsPrimitiveType(Type t)
+        {
+            if (t == typeof (int) || t == typeof (double))
+            {
+                return true;
+            }
+            return false;
+        }
+        private Type GetExpressionType(Expression expression)
+        {
+            if (expression is BinaryExpression)
+            {
+                var binaryExpression = expression as BinaryExpression;
+                return GetExpressionType(binaryExpression.LeftExpression);
+            }
+            else if (expression is LiteralExpression)
+            {
+                var literalExpression = expression as LiteralExpression;
+                if (literalExpression.Literal is BoolLiteral) return typeof (bool);
+                if (literalExpression.Literal is Int32Literal) return typeof(int);
+                if (literalExpression.Literal is DoubleLiteral) return typeof(double);
+                throw new Exception();
+            }
+            else if (expression is UnaryExpression)
+            {
+                return GetExpressionType((expression as UnaryExpression).Expression);
+            }
+            else if (expression is MultiCallExpression)
+            {
+                return GetMultiCallExpressionType((expression as MultiCallExpression).Multicall);
+            }
+            throw new Exception("Unknown expression");
+        }
+
+        private Type GetMultiCallExpressionType(Multicall multicall)
+        {
+            if (multicall is CurrentContextMethodCall)
+            {
+                var currentContextMethodCall = multicall as CurrentContextMethodCall;
+                var resultTuple = GetDefaultContextMethod(currentContextMethodCall.Identifier);
+                return resultTuple.Item2.ReturnType; 
+            }
+            if (multicall is CurrentContextPropertyCall)
+            {
+                var currentContextPropertyCall = multicall as CurrentContextPropertyCall;
+                var resultTuple = GetDefaultContextProperty(currentContextPropertyCall.Identifier);
+                return resultTuple.Item2.ReturnType; 
+            }
+            if (multicall is ObjectContextMethodCall)
+            {
+                var objectContextMethodCall = multicall as ObjectContextMethodCall;
+                var subPropertyType = GetMultiCallExpressionType(objectContextMethodCall.Multicall);
+                return GetMethodType(GetMethods(subPropertyType), objectContextMethodCall.Identifier);
+            }
+            if (multicall is ObjectContextPropertyCall)
+            {
+                var objectContextPropertyCall = multicall as ObjectContextPropertyCall;
+                var subPropertyType = GetMultiCallExpressionType(objectContextPropertyCall.Multicall);
+                return GetPropertyType(GetProperties(subPropertyType), objectContextPropertyCall.Identifier);
+            }
+            if (multicall is ArrayElementCall)
+            {
+                var arrayElementCall = multicall as ArrayElementCall;
+                var subPropertyType = GetMultiCallExpressionType(arrayElementCall.Multicall);
+                return subPropertyType.GetElementType();
+            }
+            throw new Exception("Unknown multicall expression");
+        }
+
+        private Type GetMethodType(MethodInfo[] methods, string methodName)
+        {
+            return methods.First(x => x.Name == methodName).ReturnType;
+        }
+        private Type GetPropertyType(PropertyInfo[] properties, string methodName)
+        {
+            return properties.First(x => x.Name == methodName).PropertyType;
+        }
+
+        // todo: why it return MethodInfo?
+        private Tuple<object, MethodInfo> GetDefaultContextProperty(string propertyName)
+        {
+            // Priorities: CurrentObject, EnvironmentObject
+
+            foreach (var objectContext in ObjectContexts)
+            {
+                var propertyInfo = FindProperty(objectContext, propertyName);
+                if (propertyInfo != null)
+                {
+                    return new Tuple<object, MethodInfo>(objectContext, propertyInfo.GetGetMethod());
+                }
+            }
+            throw new InvalidNameException(propertyName);
+
+        }
+
+        private Tuple<Type, MethodInfo> GetDefaultContextMethod(string methodName)
+        {
+            // Priorities: CurrentObject, EnvironmentObject
+
+            foreach (var objectContext in ObjectContexts)
+            {
+                var methodInfo = FindMethod(objectContext, methodName);
+                if (methodInfo != null)
+                {
+                    return new Tuple<Type, MethodInfo>(objectContext, methodInfo);
+                }
+            }
+            throw new InvalidNameException(methodName);
+        }
+
+        private MethodInfo FindMethod(Type type, string methodName)
+        {
+            var methods = GetMethods(type);
+            var method = methods.FirstOrDefault(x => x.Name == methodName);
+            return method;
+        }
+        private PropertyInfo FindProperty(Type type, string propertyName)
+        {
+            var methods = GetProperties(type);
+            var method = methods.FirstOrDefault(x => x.Name == propertyName);
+            return method;
+        }
+
+        private IEnumerable<Type> ObjectContexts
+        {
+            get
+            {
+                yield return _targetType;
+                foreach (var environmentClass in _environmentClasses)
+                {
+                    yield return environmentClass;
+                }
+            }
+        } 
 
         private TypeBuilder CreateTypeBuilder(Type baseType)
         {
@@ -101,14 +435,14 @@
 
             typeBuilder.SetParent(baseType);
 
-            CreateProxyConstructors(typeBuilder);
+            CreateProxyConstructors(typeBuilder, baseType);
 
             return typeBuilder;
         }
 
-        private void CreateProxyConstructors(TypeBuilder typeBuilder)
+        private void CreateProxyConstructors(TypeBuilder typeBuilder, Type baseType)
         {
-            foreach (var constructor in typeBuilder.GetConstructors())
+            foreach (var constructor in baseType.GetConstructors())
             {
                 CreateProxyConstructor(typeBuilder, constructor);
             }
@@ -171,22 +505,21 @@
         public ClassBuilder()
             : base(typeof (T))
         {
-            throw new NotImplementedException();
         }
 
         public ClassBuilder<T> AddEnvironment(Type environmentClass)
         {
-            throw new NotImplementedException();
+            return base.AddEnvironment(environmentClass) as ClassBuilder<T>;
         }
 
         public T BuildObject(params object[] parameters)
         {
-            throw new NotImplementedException();
+            return base.BuildObject(parameters) as T;
         }
 
         public ClassBuilder<T> Setup<TProperty>(Expression<Func<T, TProperty>> property, string expression)
         {
-            throw new NotImplementedException();
+            return base.Setup((property.Body as System.Linq.Expressions.MemberExpression).Member.Name, expression) as ClassBuilder<T>;
         }
     }
 }
