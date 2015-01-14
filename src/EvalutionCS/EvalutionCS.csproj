@@ -40,12 +40,30 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Ast\Expressions\MultiCalls\ArrayElementCall.cs" />
     <Compile Include="Ast\AstBuilder.cs" />
+    <Compile Include="Ast\BinaryOperator.cs" />
+    <Compile Include="Ast\Literals\BoolLiteral.cs" />
+    <Compile Include="Ast\Expressions\MultiCalls\CurrentContextMethodCall.cs" />
+    <Compile Include="Ast\Expressions\MultiCalls\CurrentContextPropertyCall.cs" />
+    <Compile Include="Ast\Literals\DoubleLiteral.cs" />
+    <Compile Include="Ast\Expressions\BinaryExpression.cs" />
+    <Compile Include="Ast\Expressions\Expression.cs" />
+    <Compile Include="Ast\Expressions\LiteralExpression.cs" />
+    <Compile Include="Ast\Expressions\MultiCallExpression.cs" />
+    <Compile Include="Ast\Expressions\UnaryExpression.cs" />
+    <Compile Include="Ast\Literals\Int32Literal.cs" />
+    <Compile Include="Ast\Literals\Literal.cs" />
+    <Compile Include="Ast\Multicall.cs" />
+    <Compile Include="Ast\Expressions\MultiCalls\ObjectContextMethodCall.cs" />
+    <Compile Include="Ast\Expressions\MultiCalls\ObjectContextPropertyCall.cs" />
+    <Compile Include="Ast\UnaryOperator.cs" />
     <Compile Include="ClassBuilder.cs" />
     <Compile Include="Exceptions\EvalutionException.cs" />
     <Compile Include="Exceptions\InvalidNameException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PropertyDefinition.cs" />
+    <Compile Include="TypeCache.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
