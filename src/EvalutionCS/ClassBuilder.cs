@@ -8,25 +8,7 @@
     using System.Reflection.Emit;
     using Ast;
     using Sigil.NonGeneric;
-    using BinaryExpression = Ast.BinaryExpression;
-    using Expression = Ast.Expression;
-    using UnaryExpression = Ast.UnaryExpression;
 
-    public class BuildArguments
-    {
-        public Emit Emitter { get; private set; }
-        public TypeCache TypeCache { get; private set; }
-        public Type TargetType { get; private set; }
-        public IEnumerable<Type> ObjectContexts { get; set; }
-
-        public BuildArguments(Emit emitter, TypeCache typeCache, Type targetType, IEnumerable<Type> objectContexts)
-        {
-            Emitter = emitter;
-            TypeCache = typeCache;
-            TargetType = targetType;
-            ObjectContexts = objectContexts;
-        }
-    }
     public class ClassBuilder
     {
         private readonly Type _targetType;
@@ -70,22 +52,23 @@
         {
             var typeBuilder = CreateTypeBuilder(_targetType);
 
+            var ctx = new Context(_typeCache, _targetType, ObjectContexts);
             foreach (var propertyDefinition in _propertyDefinitions)
             {
-                BuildProperty(typeBuilder, propertyDefinition);
+                BuildProperty(typeBuilder, propertyDefinition, ctx);
             }
             return typeBuilder.CreateType();
         }
 
-        private void BuildProperty(TypeBuilder typeBuilder, PropertyDefinition propertyDefinition)
+        private void BuildProperty(TypeBuilder typeBuilder, PropertyDefinition propertyDefinition, Context ctx)
         {
             var propertyBuilder = typeBuilder.DefineProperty(propertyDefinition.PropertyInfo.Name,
                 PropertyAttributes.HasDefault, propertyDefinition.PropertyInfo.PropertyType, null);
-            var getMethodBuilder = CreateGetPropertyMethodBuilder(typeBuilder, propertyDefinition);
+            var getMethodBuilder = CreateGetPropertyMethodBuilder(typeBuilder, propertyDefinition, ctx);
             propertyBuilder.SetGetMethod(getMethodBuilder);
         }
 
-        private MethodBuilder CreateGetPropertyMethodBuilder(TypeBuilder typeBuilder, PropertyDefinition propertyDefinition)
+        private MethodBuilder CreateGetPropertyMethodBuilder(TypeBuilder typeBuilder, PropertyDefinition propertyDefinition, Context ctx)
         {
             var propertyName = propertyDefinition.PropertyInfo.Name;
             var emitter = Emit.BuildMethod(propertyDefinition.PropertyInfo.PropertyType, new Type[0], typeBuilder,
@@ -95,7 +78,7 @@
                 CallingConventions.Standard | CallingConventions.HasThis);
 
             var expression = AstBuilder.Build(propertyDefinition.Expression);
-            expression.BuildBody(new BuildArguments(emitter, _typeCache, _targetType, ObjectContexts));
+            expression.BuildBody(emitter, ctx);
             emitter.Return();
             return emitter.CreateMethod();
         }

@@ -33,47 +33,47 @@ namespace EvalutionCS.Ast
             return false;
         }
 
-        public override Type BuildBody(BuildArguments args)
+        public override Type BuildBody(Emit emitter, Context ctx)
         {
-            var result = GetDefaultContextMethod(args);
+            var result = GetDefaultContextMethod(ctx);
             var method = result.Item2;
             var target = result.Item1;
-            if (target == args.TargetType)
+            if (target == ctx.TargetType)
             {
-                args.Emitter.LoadArgument((UInt16)0);
+                emitter.LoadArgument((UInt16)0);
                 foreach (var expression in Arguments)
                 {
-                    expression.BuildBody(args);
+                    expression.BuildBody(emitter, ctx);
                 }
-                args.Emitter.CallVirtual(method);
+                emitter.CallVirtual(method);
                 return method.ReturnType;
             }
             else
             {
                 foreach (var expression in Arguments)
                 {
-                    expression.BuildBody(args);
+                    expression.BuildBody(emitter, ctx);
                 }
-                args.Emitter.Call(method);
+                emitter.Call(method);
                 return method.ReturnType;
             }
 
         }
 
-        public override Type GetExpressionType(BuildArguments args)
+        public override Type GetExpressionType(Context ctx)
         {
-            var resultTuple = GetDefaultContextMethod(args);
+            var resultTuple = GetDefaultContextMethod(ctx);
             return resultTuple.Item2.ReturnType; 
 
         }
 
-        private Tuple<Type, MethodInfo> GetDefaultContextMethod(BuildArguments args)
+        private Tuple<Type, MethodInfo> GetDefaultContextMethod(Context ctx)
         {
             // Priorities: CurrentObject, EnvironmentObject
 
-            foreach (var objectContext in args.ObjectContexts)
+            foreach (var objectContext in ctx.ObjectContexts)
             {
-                var methodInfo = args.TypeCache.GetTypeMethod(objectContext, Identifier);
+                var methodInfo = ctx.TypeCache.GetTypeMethod(objectContext, Identifier);
                 if (methodInfo != null)
                 {
                     return new Tuple<Type, MethodInfo>(objectContext, methodInfo);

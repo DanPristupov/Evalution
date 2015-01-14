@@ -28,53 +28,53 @@
             return false;
         }
 
-        public override void BuildBody(BuildArguments args)
+        public override void BuildBody(Emit emitter, Context ctx)
         {
-            var leftType = LeftExpression.GetExpressionType(args);
-            var rightType = RightExpression.GetExpressionType(args);
+            var leftType = LeftExpression.GetExpressionType(ctx);
+            var rightType = RightExpression.GetExpressionType(ctx);
 
             if (BinaryOperator == BinaryOperator.Add)
             {
-                LeftExpression.BuildBody(args);
-                RightExpression.BuildBody(args);
+                LeftExpression.BuildBody(emitter, ctx);
+                RightExpression.BuildBody(emitter, ctx);
                 if (IsPrimitiveType(leftType))
                 {
-                    args.Emitter.Add();
+                    emitter.Add();
                 }
                 else
                 {
                     var addMethod = leftType.GetMethod("op_Addition", new[] { leftType, rightType });
-                    args.Emitter.Call(addMethod);
+                    emitter.Call(addMethod);
                 }
                 return;
             }
             if (BinaryOperator == BinaryOperator.Subtract)
             {
-                LeftExpression.BuildBody(args);
-                RightExpression.BuildBody(args);
+                LeftExpression.BuildBody(emitter, ctx);
+                RightExpression.BuildBody(emitter, ctx);
                 if (IsPrimitiveType(leftType))
                 {
-                    args.Emitter.Subtract();
+                    emitter.Subtract();
                 }
                 else
                 {
                     var subtractMethod = leftType.GetMethod("op_Subtraction", new[] { leftType, rightType });
-                    args.Emitter.Call(subtractMethod);
+                    emitter.Call(subtractMethod);
                 }
                 return;
             }
             if (BinaryOperator == BinaryOperator.Multiply)
             {
-                LeftExpression.BuildBody(args);
-                RightExpression.BuildBody(args);
-                args.Emitter.Multiply();
+                LeftExpression.BuildBody(emitter, ctx);
+                RightExpression.BuildBody(emitter, ctx);
+                emitter.Multiply();
                 return;
             }
             if (BinaryOperator == BinaryOperator.Divide)
             {
-                LeftExpression.BuildBody(args);
-                RightExpression.BuildBody(args);
-                args.Emitter.Divide();
+                LeftExpression.BuildBody(emitter, ctx);
+                RightExpression.BuildBody(emitter, ctx);
+                emitter.Divide();
                 return;
             }
             throw new Exception("Unknown binary operator");
@@ -90,9 +90,9 @@
         }
 
 
-        public override Type GetExpressionType(BuildArguments args)
+        public override Type GetExpressionType(Context ctx)
         {
-            return LeftExpression.GetExpressionType(args);
+            return LeftExpression.GetExpressionType(ctx);
         }
     }
 }

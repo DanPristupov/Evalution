@@ -1,6 +1,7 @@
 namespace EvalutionCS.Ast
 {
     using System;
+    using Sigil.NonGeneric;
 
     public class ObjectContextPropertyCall : Multicall
     {
@@ -23,24 +24,24 @@ namespace EvalutionCS.Ast
             return false;
         }
 
-        public override Type BuildBody(BuildArguments args)
+        public override Type BuildBody(Emit emitter, Context ctx)
         {
-            var subPropertyType = Multicall.BuildBody(args);
+            var subPropertyType = Multicall.BuildBody(emitter, ctx);
             if (subPropertyType.IsValueType && !subPropertyType.IsPrimitive)
             {
-                args.Emitter.DeclareLocal(subPropertyType, "value1");
-                args.Emitter.StoreLocal("value1");
-                args.Emitter.LoadLocalAddress("value1");
+                emitter.DeclareLocal(subPropertyType, "value1");
+                emitter.StoreLocal("value1");
+                emitter.LoadLocalAddress("value1");
             }
-            var propertyMethod = args.TypeCache.GetTypePropertyMethod(subPropertyType, Identifier);
-            args.Emitter.CallVirtual(propertyMethod);
+            var propertyMethod = ctx.TypeCache.GetTypePropertyMethod(subPropertyType, Identifier);
+            emitter.CallVirtual(propertyMethod);
             return propertyMethod.ReturnType;
         }
 
-        public override Type GetExpressionType(BuildArguments args)
+        public override Type GetExpressionType(Context ctx)
         {
-            var subPropertyType = Multicall.GetExpressionType(args);
-            return args.TypeCache.GetTypeProperty(subPropertyType, Identifier).GetGetMethod().ReturnType;
+            var subPropertyType = Multicall.GetExpressionType(ctx);
+            return ctx.TypeCache.GetTypeProperty(subPropertyType, Identifier).GetGetMethod().ReturnType;
         }
     }
 }

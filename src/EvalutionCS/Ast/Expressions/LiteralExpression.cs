@@ -1,6 +1,7 @@
 ﻿namespace EvalutionCS.Ast
 {
     using System;
+    using Sigil.NonGeneric;
 
     public class LiteralExpression : Expression
     {
@@ -21,12 +22,12 @@
             return false;
         }
 
-        public override void BuildBody(BuildArguments args)
+        public override void BuildBody(Emit emitter, Context ctx)
         {
-            Literal.LoadConstant(args.Emitter);
+            Literal.LoadConstant(emitter);
         }
 
-        public override Type GetExpressionType(BuildArguments args)
+        public override Type GetExpressionType(Context ctx)
         {
             return Literal.GetExpressionType();
         }

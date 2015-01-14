@@ -5,7 +5,7 @@ namespace EvalutionCS.Ast
 
     public abstract class Expression
     {
-        public abstract void BuildBody(BuildArguments args);
-        public abstract Type GetExpressionType(BuildArguments args);
+        public abstract void BuildBody(Emit emitter, Context ctx);
+        public abstract Type GetExpressionType(Context ctx);
     }
 }

@@ -2,6 +2,7 @@ namespace EvalutionCS.Ast
 {
     using System;
     using System.Reflection;
+    using Sigil.NonGeneric;
 
     public class CurrentContextPropertyCall : Multicall
     {
@@ -21,38 +22,38 @@ namespace EvalutionCS.Ast
             return false;
         }
 
-        public override Type BuildBody(BuildArguments args)
+        public override Type BuildBody(Emit emitter, Context ctx)
         {
-            var result = GetDefaultContextProperty(args);
+            var result = GetDefaultContextProperty(ctx);
             var target = result.Item1;
             var method = result.Item2;
-            if (target == args.TargetType)
+            if (target == ctx.TargetType)
             {
-                args.Emitter.LoadArgument((UInt16)0);
-                args.Emitter.CallVirtual(method);
+                emitter.LoadArgument((UInt16)0);
+                emitter.CallVirtual(method);
                 return method.ReturnType;
             }
             else
             {
-                args.Emitter.Call(method);
+                emitter.Call(method);
                 return method.ReturnType;
             }
 
         }
 
-        public override Type GetExpressionType(BuildArguments args)
+        public override Type GetExpressionType(Context ctx)
         {
-            var resultTuple = GetDefaultContextProperty(args);
+            var resultTuple = GetDefaultContextProperty(ctx);
             return resultTuple.Item2.ReturnType; 
         }
 
-        private Tuple<Type, MethodInfo> GetDefaultContextProperty(BuildArguments args)
+        private Tuple<Type, MethodInfo> GetDefaultContextProperty(Context ctx)
         {
             // Priorities: CurrentObject, EnvironmentObject
 
-            foreach (var objectContext in args.ObjectContexts)
+            foreach (var objectContext in ctx.ObjectContexts)
             {
-                var propertyInfo = args.TypeCache.GetTypeProperty(objectContext, Identifier);
+                var propertyInfo = ctx.TypeCache.GetTypeProperty(objectContext, Identifier);
                 if (propertyInfo != null)
                 {
                     return new Tuple<Type, MethodInfo>(objectContext, propertyInfo.GetGetMethod());

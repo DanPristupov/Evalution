@@ -1,6 +1,7 @@
 namespace EvalutionCS.Ast
 {
     using System;
+    using Sigil.NonGeneric;
 
     public class MultiCallExpression : Expression
     {
@@ -21,14 +22,14 @@ namespace EvalutionCS.Ast
             return false;
         }
 
-        public override void BuildBody(BuildArguments args)
+        public override void BuildBody(Emit emitter, Context ctx)
         {
-            Multicall.BuildBody(args);
+            Multicall.BuildBody(emitter, ctx);
         }
 
-        public override Type GetExpressionType(BuildArguments args)
+        public override Type GetExpressionType(Context ctx)
         {
-            return Multicall.GetExpressionType(args);
+            return Multicall.GetExpressionType(ctx);
         }
     }
 }

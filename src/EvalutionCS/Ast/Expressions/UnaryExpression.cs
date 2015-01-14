@@ -25,18 +25,18 @@ namespace EvalutionCS.Ast
             return false;
         }
 
-        public override void BuildBody(BuildArguments args)
+        public override void BuildBody(Emit emitter, Context ctx)
         {
             if (UnaryOperator == UnaryOperator.Negate)
             {
-                Expression.BuildBody(args);
-                args.Emitter.Negate();
+                Expression.BuildBody(emitter, ctx);
+                emitter.Negate();
                 return;
             }
             if (UnaryOperator == UnaryOperator.Identity)
             {
                 // We do not need to do anything here.
-                Expression.BuildBody(args);
+                Expression.BuildBody(emitter, ctx);
                 return;
             }
             if (UnaryOperator == UnaryOperator.LogicalNegate)
@@ -46,9 +46,9 @@ namespace EvalutionCS.Ast
 
         }
 
-        public override Type GetExpressionType(BuildArguments args)
+        public override Type GetExpressionType(Context ctx)
         {
-            return Expression.GetExpressionType(args);
+            return Expression.GetExpressionType(ctx);
         }
     }
 }

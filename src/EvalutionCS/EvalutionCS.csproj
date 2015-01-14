@@ -59,6 +59,7 @@
     <Compile Include="Ast\Expressions\MultiCalls\ObjectContextPropertyCall.cs" />
     <Compile Include="Ast\UnaryOperator.cs" />
     <Compile Include="ClassBuilder.cs" />
+    <Compile Include="Context.cs" />
     <Compile Include="Exceptions\EvalutionException.cs" />
     <Compile Include="Exceptions\InvalidNameException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
