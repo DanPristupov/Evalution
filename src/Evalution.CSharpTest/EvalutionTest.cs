@@ -3,6 +3,8 @@ using NUnit.Framework;
 
 namespace Evalution.CSharpTest
 {
+    using EvalutionCS;
+
     [TestFixture]
     public class ClassBuilderTest
     {

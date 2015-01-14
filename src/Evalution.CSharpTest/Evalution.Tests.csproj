@@ -7,8 +7,8 @@
     <ProjectGuid>{3FAF0988-5CC0-442B-9A5F-A01878E4147D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Evalution.CSharpTest</RootNamespace>
-    <AssemblyName>Evalution.CSharpTest</AssemblyName>
+    <RootNamespace>Evalution.Tests</RootNamespace>
+    <AssemblyName>Evalution.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -16,7 +16,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\output\Debug\Evalution.CSharpTest\</OutputPath>
+    <OutputPath>..\..\output\Debug\Evalution.Tests\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -24,7 +24,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\output\Release\Evalution.CSharpTest\</OutputPath>
+    <OutputPath>..\..\output\Release\Evalution.Tests\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AstBuilderTest.cs" />
     <Compile Include="EvalutionTest.cs" />
     <Compile Include="EnvironmentObjectTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -51,8 +52,8 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Evalution\Evalution.fsproj">
-      <Project>{062775db-ea04-4645-8982-ddd02dfcfa9f}</Project>
+    <ProjectReference Include="..\EvalutionCS\Evalution.csproj">
+      <Project>{05434fba-2269-4e6b-a872-b9b9c3375840}</Project>
       <Name>Evalution</Name>
     </ProjectReference>
   </ItemGroup>
