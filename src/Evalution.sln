@@ -8,9 +8,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{090B16
 		.nuget\packages.config = .nuget\packages.config
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Evalution.CSharpTest", "Evalution.CSharpTest\Evalution.CSharpTest.csproj", "{3FAF0988-5CC0-442B-9A5F-A01878E4147D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Evalution.Tests", "Evalution.CSharpTest\Evalution.Tests.csproj", "{3FAF0988-5CC0-442B-9A5F-A01878E4147D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvalutionCS", "EvalutionCS\EvalutionCS.csproj", "{05434FBA-2269-4E6B-A872-B9B9C3375840}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Evalution", "EvalutionCS\Evalution.csproj", "{05434FBA-2269-4E6B-A872-B9B9C3375840}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
