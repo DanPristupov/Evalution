@@ -1,16 +1,19 @@
 ﻿namespace EvalutionCS
 {
-    using System.Reflection;
+    using System;
 
     public class PropertyDefinition
     {
-        public PropertyDefinition(PropertyInfo propertyInfo, string expression)
+        public PropertyDefinition(string propertyName, Type propertyType, string expression)
         {
-            PropertyInfo = propertyInfo;
+            PropertyName = propertyName;
+            PropertyType = propertyType;
             Expression = expression;
         }
 
-        public PropertyInfo PropertyInfo { get; private set; }
+        public string PropertyName { get; set; }
+        public Type PropertyType { get; set; }
+
         public string Expression { get; private set; }
     }
 }

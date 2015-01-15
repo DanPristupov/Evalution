@@ -62,16 +62,16 @@
 
         private void BuildProperty(TypeBuilder typeBuilder, PropertyDefinition propertyDefinition, Context ctx)
         {
-            var propertyBuilder = typeBuilder.DefineProperty(propertyDefinition.PropertyInfo.Name,
-                PropertyAttributes.HasDefault, propertyDefinition.PropertyInfo.PropertyType, null);
+            var propertyBuilder = typeBuilder.DefineProperty(propertyDefinition.PropertyName,
+                PropertyAttributes.HasDefault, propertyDefinition.PropertyType, null);
             var getMethodBuilder = CreateGetPropertyMethodBuilder(typeBuilder, propertyDefinition, ctx);
             propertyBuilder.SetGetMethod(getMethodBuilder);
         }
 
         private MethodBuilder CreateGetPropertyMethodBuilder(TypeBuilder typeBuilder, PropertyDefinition propertyDefinition, Context ctx)
         {
-            var propertyName = propertyDefinition.PropertyInfo.Name;
-            var emitter = Emit.BuildMethod(propertyDefinition.PropertyInfo.PropertyType, new Type[0], typeBuilder,
+            var propertyName = propertyDefinition.PropertyName;
+            var emitter = Emit.BuildMethod(propertyDefinition.PropertyType, new Type[0], typeBuilder,
                 "get_" + propertyName,
                 MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig |
                 MethodAttributes.Virtual,
@@ -141,7 +141,7 @@
             CheckResultTypeIsNotBuilt();
             var propertyInfo = _typeCache.GetTypeProperty(_targetType, property);
 
-            _propertyDefinitions.Add(new PropertyDefinition(propertyInfo, expression));
+            _propertyDefinitions.Add(new PropertyDefinition(propertyInfo.Name, propertyInfo.PropertyType, expression));
             return this;
         }
 
