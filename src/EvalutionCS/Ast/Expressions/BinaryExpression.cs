@@ -1,7 +1,7 @@
 ﻿namespace EvalutionCS.Ast
 {
     using System;
-    using Sigil.NonGeneric;
+    using System.Reflection.Emit;
 
     public class BinaryExpression : Expression
     {
@@ -28,53 +28,59 @@
             return false;
         }
 
-        public override void BuildBody(Emit emitter, Context ctx)
+        public override void BuildBody(ILGenerator il, Context ctx)
         {
             var leftType = LeftExpression.GetExpressionType(ctx);
             var rightType = RightExpression.GetExpressionType(ctx);
 
             if (BinaryOperator == BinaryOperator.Add)
             {
-                LeftExpression.BuildBody(emitter, ctx);
-                RightExpression.BuildBody(emitter, ctx);
+                LeftExpression.BuildBody(il, ctx);
+                RightExpression.BuildBody(il, ctx);
                 if (IsPrimitiveType(leftType))
                 {
-                    emitter.Add();
+                    il.Emit(OpCodes.Add);
+//                    emitter.Add();
                 }
                 else
                 {
                     var addMethod = leftType.GetMethod("op_Addition", new[] { leftType, rightType });
-                    emitter.Call(addMethod);
+                    il.Emit(OpCodes.Call, addMethod);
+//                    emitter.Call(addMethod);
                 }
                 return;
             }
             if (BinaryOperator == BinaryOperator.Subtract)
             {
-                LeftExpression.BuildBody(emitter, ctx);
-                RightExpression.BuildBody(emitter, ctx);
+                LeftExpression.BuildBody(il, ctx);
+                RightExpression.BuildBody(il, ctx);
                 if (IsPrimitiveType(leftType))
                 {
-                    emitter.Subtract();
+                    il.Emit(OpCodes.Sub);
+//                    emitter.Subtract();
                 }
                 else
                 {
                     var subtractMethod = leftType.GetMethod("op_Subtraction", new[] { leftType, rightType });
-                    emitter.Call(subtractMethod);
+                    il.Emit(OpCodes.Call, subtractMethod);
+//                    emitter.Call(subtractMethod);
                 }
                 return;
             }
             if (BinaryOperator == BinaryOperator.Multiply)
             {
-                LeftExpression.BuildBody(emitter, ctx);
-                RightExpression.BuildBody(emitter, ctx);
-                emitter.Multiply();
+                LeftExpression.BuildBody(il, ctx);
+                RightExpression.BuildBody(il, ctx);
+                il.Emit(OpCodes.Mul);
+//                emitter.Multiply();
                 return;
             }
             if (BinaryOperator == BinaryOperator.Divide)
             {
-                LeftExpression.BuildBody(emitter, ctx);
-                RightExpression.BuildBody(emitter, ctx);
-                emitter.Divide();
+                LeftExpression.BuildBody(il, ctx);
+                RightExpression.BuildBody(il, ctx);
+                il.Emit(OpCodes.Div);
+//                emitter.Divide();
                 return;
             }
             throw new Exception("Unknown binary operator");

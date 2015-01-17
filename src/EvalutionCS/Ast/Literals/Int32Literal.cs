@@ -1,7 +1,7 @@
 namespace EvalutionCS.Ast
 {
     using System;
-    using Sigil.NonGeneric;
+    using System.Reflection.Emit;
 
     public class Int32Literal : Literal
     {
@@ -21,9 +21,10 @@ namespace EvalutionCS.Ast
             return false;
         }
 
-        public override void LoadConstant(Emit emitter)
+        public override void LoadConstant(ILGenerator il)
         {
-            emitter.LoadConstant(Value);
+//            emitter.LoadConstant(Value);
+            il.Emit(OpCodes.Ldc_I4, Value);
         }
 
         public override Type GetExpressionType()

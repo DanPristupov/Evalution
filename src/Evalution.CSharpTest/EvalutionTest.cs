@@ -227,10 +227,10 @@ namespace Evalution.CSharpTest
 
             var classBuilder = new ClassBuilder<ClassArray>()
                 .AddEnvironment(typeof (TimeSpan))
-                .Setup(x => x.DependentValue1, "IntValues[2] * 2")
-                .Setup(x => x.DependentValue2, "IntValues[1] + IntValues[2]")
+//                .Setup(x => x.DependentValue1, "IntValues[2] * 2")
+//                .Setup(x => x.DependentValue2, "IntValues[1] + IntValues[2]")
                 .Setup(x => x.DependentValue3, "ComplexObjects[1].Duration + FromHours(2.0)")
-                .Setup(x => x.DependentValue4, "ComplexObjects[1].Start + ComplexObjects[0].Duration")
+//                .Setup(x => x.DependentValue4, "ComplexObjects[1].Start + ComplexObjects[0].Duration")
                 ;
 
             var target = classBuilder.BuildObject();
@@ -241,10 +241,10 @@ namespace Evalution.CSharpTest
                 new ClassDateTime() {Duration = TimeSpan.FromHours(5), Start = start},
             };
 
-            Assert.AreEqual(6, target.DependentValue1);                         // "IntValues[2] * 2"
-            Assert.AreEqual(5, target.DependentValue2);                         // "IntValues[1] + IntValues[2]"
+//            Assert.AreEqual(6, target.DependentValue1);                         // "IntValues[2] * 2"
+//            Assert.AreEqual(5, target.DependentValue2);                         // "IntValues[1] + IntValues[2]"
             Assert.AreEqual(TimeSpan.FromHours(7.0), target.DependentValue3);   // "ComplexObjects[1].Duration + TimeSpan.FromHours(2.0)"
-            Assert.AreEqual(start.AddHours(4), target.DependentValue4);         // "ComplexObjects[1].Start + ComplexObjects[0].Duration"
+//            Assert.AreEqual(start.AddHours(4), target.DependentValue4);         // "ComplexObjects[1].Start + ComplexObjects[0].Duration"
         }
 
         [Test]

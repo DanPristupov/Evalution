@@ -1,7 +1,7 @@
 namespace EvalutionCS.Ast
 {
     using System;
-    using Sigil.NonGeneric;
+    using System.Reflection.Emit;
 
     public class UnaryExpression : Expression
     {
@@ -25,18 +25,19 @@ namespace EvalutionCS.Ast
             return false;
         }
 
-        public override void BuildBody(Emit emitter, Context ctx)
+        public override void BuildBody(ILGenerator li, Context ctx)
         {
             if (UnaryOperator == UnaryOperator.Negate)
             {
-                Expression.BuildBody(emitter, ctx);
-                emitter.Negate();
+                Expression.BuildBody(li, ctx);
+                li.Emit(OpCodes.Neg);
+//                emitter.Negate();
                 return;
             }
             if (UnaryOperator == UnaryOperator.Identity)
             {
                 // We do not need to do anything here.
-                Expression.BuildBody(emitter, ctx);
+                Expression.BuildBody(li, ctx);
                 return;
             }
             if (UnaryOperator == UnaryOperator.LogicalNegate)

@@ -3,7 +3,7 @@ namespace EvalutionCS.Ast
     using System;
     using System.Collections.Generic;
     using System.Reflection;
-    using Sigil.NonGeneric;
+    using System.Reflection.Emit;
 
     public class CurrentContextMethodCall : Multicall
     {
@@ -33,28 +33,32 @@ namespace EvalutionCS.Ast
             return false;
         }
 
-        public override Type BuildBody(Emit emitter, Context ctx)
+        public override Type BuildBody(ILGenerator il, Context ctx)
         {
             var result = GetDefaultContextMethod(ctx);
             var method = result.Item2;
             var target = result.Item1;
             if (target == ctx.TargetType)
             {
-                emitter.LoadArgument((UInt16)0);
+                
+//                emitter.LoadArgument((UInt16)0);
+                il.Emit(OpCodes.Ldarg_0);
                 foreach (var expression in Arguments)
                 {
-                    expression.BuildBody(emitter, ctx);
+                    expression.BuildBody(il, ctx);
                 }
-                emitter.CallVirtual(method);
+                il.Emit(OpCodes.Callvirt, method);
+//                emitter.CallVirtual(method);
                 return method.ReturnType;
             }
             else
             {
                 foreach (var expression in Arguments)
                 {
-                    expression.BuildBody(emitter, ctx);
+                    expression.BuildBody(il, ctx);
                 }
-                emitter.Call(method);
+                il.Emit(OpCodes.Call, method);
+//                emitter.Call(method);
                 return method.ReturnType;
             }
 

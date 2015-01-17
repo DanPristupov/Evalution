@@ -2,7 +2,7 @@ namespace EvalutionCS.Ast
 {
     using System;
     using System.Reflection;
-    using Sigil.NonGeneric;
+    using System.Reflection.Emit;
 
     public class CurrentContextPropertyCall : Multicall
     {
@@ -22,20 +22,23 @@ namespace EvalutionCS.Ast
             return false;
         }
 
-        public override Type BuildBody(Emit emitter, Context ctx)
+        public override Type BuildBody(ILGenerator il, Context ctx)
         {
             var result = GetDefaultContextProperty(ctx);
             var target = result.Item1;
             var method = result.Item2;
             if (target == ctx.TargetType)
             {
-                emitter.LoadArgument((UInt16)0);
-                emitter.CallVirtual(method);
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Callvirt, method);
+//                emitter.LoadArgument((UInt16)0);
+//                emitter.CallVirtual(method);
                 return method.ReturnType;
             }
             else
             {
-                emitter.Call(method);
+                il.Emit(OpCodes.Call, method);
+//                emitter.Call(method);
                 return method.ReturnType;
             }
 

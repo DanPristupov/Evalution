@@ -2,6 +2,8 @@
 
 namespace Evalution.CSharpTest
 {
+    using System.Runtime.InteropServices;
+
     public class ClassInt32
     {
         public int Value1 { get; set; }
@@ -45,13 +47,18 @@ namespace Evalution.CSharpTest
 
         public virtual DateTime DependentValue1 { get; set; }
 
-        public virtual DateTime DependentValue2 { get; set; }
+        public DateTime DependentValue2 { get { return Start.AddHours(2.0); } }
 
         public virtual TimeSpan DependentValue3 { get; set; }
     }
 
     public class ClassArray
     {
+        public int xx
+        {
+            get { return DependentValue3.Days; }
+        }
+
         public int[] IntValues { get; set; }
         public ClassDateTime[] ComplexObjects { get; set; }
 
