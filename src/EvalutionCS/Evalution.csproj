@@ -51,7 +51,7 @@
     <Compile Include="Ast\Expressions\UnaryExpression.cs" />
     <Compile Include="Ast\Literals\Int32Literal.cs" />
     <Compile Include="Ast\Literals\Literal.cs" />
-    <Compile Include="Ast\Multicall.cs" />
+    <Compile Include="Ast\Expressions\MultiCalls\Multicall.cs" />
     <Compile Include="Ast\Expressions\MultiCalls\ObjectContextMethodCall.cs" />
     <Compile Include="Ast\Expressions\MultiCalls\ObjectContextPropertyCall.cs" />
     <Compile Include="Ast\UnaryOperator.cs" />
