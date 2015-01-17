@@ -51,12 +51,13 @@
         {
             var typeBuilder = CreateTypeBuilder(_targetType);
 
-            var ctx = new Context(_typeCache, _targetType, ObjectContexts);
-            
+            var objectProperties = new List<Property>();
             foreach (var propertyDefinition in _propertyDefinitions)
             {
-                ctx.ObjectProperties.Add(InitializeProperty(typeBuilder, propertyDefinition));
+                objectProperties.Add(InitializeProperty(typeBuilder, propertyDefinition));
             }
+
+            var ctx = new Context(_typeCache, _targetType, ObjectContexts, objectProperties);
 
             foreach (var property in ctx.ObjectProperties)
             {
