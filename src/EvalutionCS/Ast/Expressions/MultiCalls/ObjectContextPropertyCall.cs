@@ -24,7 +24,7 @@ namespace Evalution.Ast
                 il.Emit(OpCodes.Ldloca_S, local.LocalIndex);
             }
 
-            var propertyMethod = ctx.TypeCache.GetTypePropertyMethod(subPropertyType, Identifier);
+            var propertyMethod = ctx.TypeCache.GetTypeProperty(subPropertyType, Identifier).GetGetMethod();
             il.Emit(OpCodes.Callvirt, propertyMethod);
 
             return propertyMethod.ReturnType;
