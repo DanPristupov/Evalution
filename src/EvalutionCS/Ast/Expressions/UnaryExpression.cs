@@ -31,7 +31,7 @@ namespace EvalutionCS.Ast
             {
                 Expression.BuildBody(li, ctx);
                 li.Emit(OpCodes.Neg);
-//                emitter.Negate();
+
                 return;
             }
             if (UnaryOperator == UnaryOperator.Identity)

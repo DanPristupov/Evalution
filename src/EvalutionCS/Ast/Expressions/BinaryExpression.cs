@@ -40,13 +40,11 @@
                 if (IsPrimitiveType(leftType))
                 {
                     il.Emit(OpCodes.Add);
-//                    emitter.Add();
                 }
                 else
                 {
                     var addMethod = leftType.GetMethod("op_Addition", new[] { leftType, rightType });
                     il.Emit(OpCodes.Call, addMethod);
-//                    emitter.Call(addMethod);
                 }
                 return;
             }
@@ -57,13 +55,11 @@
                 if (IsPrimitiveType(leftType))
                 {
                     il.Emit(OpCodes.Sub);
-//                    emitter.Subtract();
                 }
                 else
                 {
                     var subtractMethod = leftType.GetMethod("op_Subtraction", new[] { leftType, rightType });
                     il.Emit(OpCodes.Call, subtractMethod);
-//                    emitter.Call(subtractMethod);
                 }
                 return;
             }
@@ -72,7 +68,6 @@
                 LeftExpression.BuildBody(il, ctx);
                 RightExpression.BuildBody(il, ctx);
                 il.Emit(OpCodes.Mul);
-//                emitter.Multiply();
                 return;
             }
             if (BinaryOperator == BinaryOperator.Divide)
@@ -80,7 +75,6 @@
                 LeftExpression.BuildBody(il, ctx);
                 RightExpression.BuildBody(il, ctx);
                 il.Emit(OpCodes.Div);
-//                emitter.Divide();
                 return;
             }
             throw new Exception("Unknown binary operator");

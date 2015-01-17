@@ -31,14 +31,11 @@ namespace EvalutionCS.Ast
             {
                 il.Emit(OpCodes.Ldarg_0);
                 il.Emit(OpCodes.Callvirt, method);
-//                emitter.LoadArgument((UInt16)0);
-//                emitter.CallVirtual(method);
                 return method.ReturnType;
             }
             else
             {
                 il.Emit(OpCodes.Call, method);
-//                emitter.Call(method);
                 return method.ReturnType;
             }
 

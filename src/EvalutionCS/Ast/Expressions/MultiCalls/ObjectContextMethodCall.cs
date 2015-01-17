@@ -43,11 +43,8 @@ namespace EvalutionCS.Ast
                 var local = il.DeclareLocal(subPropertyType);
                 il.Emit(OpCodes.Stloc, local.LocalIndex);
                 il.Emit(OpCodes.Ldloca_S, local.LocalIndex);
-
-//                emitter.DeclareLocal(subPropertyType, "value1");
-//                emitter.StoreLocal("value1");
-//                emitter.LoadLocalAddress("value1");
             }
+
             foreach (var expression in Arguments)
             {
                 expression.BuildBody(il, ctx);
@@ -55,7 +52,6 @@ namespace EvalutionCS.Ast
 
             var method = ctx.TypeCache.GetTypeMethod(subPropertyType, Identifier);
 
-//            emitter.CallVirtual(method);
             il.Emit(OpCodes.Callvirt, method);
 
             return method.ReturnType;

@@ -30,7 +30,6 @@ namespace EvalutionCS.Ast
             Expression.BuildBody(il, ctx);
 
             var elementType = subPropertyType.GetElementType();
-//            emitter.LoadElement(elementType);
             il.Emit(OpCodes.Ldelem, elementType);
             return elementType;
         }
@@ -39,7 +38,6 @@ namespace EvalutionCS.Ast
         {
             var subPropertyType = Multicall.GetExpressionType(ctx);
             return subPropertyType.GetElementType();
-
         }
     }
 }

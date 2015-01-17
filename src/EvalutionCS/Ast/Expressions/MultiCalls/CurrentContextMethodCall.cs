@@ -40,15 +40,12 @@ namespace EvalutionCS.Ast
             var target = result.Item1;
             if (target == ctx.TargetType)
             {
-                
-//                emitter.LoadArgument((UInt16)0);
                 il.Emit(OpCodes.Ldarg_0);
                 foreach (var expression in Arguments)
                 {
                     expression.BuildBody(il, ctx);
                 }
                 il.Emit(OpCodes.Callvirt, method);
-//                emitter.CallVirtual(method);
                 return method.ReturnType;
             }
             else
@@ -58,7 +55,6 @@ namespace EvalutionCS.Ast
                     expression.BuildBody(il, ctx);
                 }
                 il.Emit(OpCodes.Call, method);
-//                emitter.Call(method);
                 return method.ReturnType;
             }
 

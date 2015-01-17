@@ -23,7 +23,6 @@ namespace EvalutionCS.Ast
 
         public override void LoadConstant(ILGenerator il)
         {
-//            emitter.LoadConstant(Value);
             il.Emit(OpCodes.Ldc_I4, Value);
         }
 
