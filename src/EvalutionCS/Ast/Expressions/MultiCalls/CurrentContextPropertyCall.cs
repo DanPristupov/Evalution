@@ -14,15 +14,6 @@ namespace EvalutionCS.Ast
 
         public string Identifier { get; set; }
 
-        public override bool Equals(object obj)
-        {
-            if (obj is CurrentContextPropertyCall)
-            {
-                return (obj as CurrentContextPropertyCall).Identifier.Equals(Identifier);
-            }
-            return false;
-        }
-
         public override Type BuildBody(ILGenerator il, Context ctx)
         {
             var result = GetDefaultContextProperty(ctx);
@@ -68,5 +59,17 @@ namespace EvalutionCS.Ast
             throw new InvalidNameException(Identifier);
 
         }
+
+        #region Equals
+        public override bool Equals(object obj)
+        {
+            if (obj is CurrentContextPropertyCall)
+            {
+                return (obj as CurrentContextPropertyCall).Identifier.Equals(Identifier);
+            }
+            return false;
+        }
+        #endregion
+
     }
 }

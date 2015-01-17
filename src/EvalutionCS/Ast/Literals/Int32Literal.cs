@@ -14,15 +14,6 @@ namespace EvalutionCS.Ast
 
         public int Value { get; private set; }
 
-        public override bool Equals(object obj)
-        {
-            if (obj is Int32Literal)
-            {
-                return (obj as Int32Literal).Value.Equals(Value);
-            }
-            return false;
-        }
-
         public override void LoadConstant(ILGenerator il)
         {
             il.Emit(OpCodes.Ldc_I4, Value);
@@ -32,5 +23,17 @@ namespace EvalutionCS.Ast
         {
             return _type;
         }
+
+        #region Equals
+        public override bool Equals(object obj)
+        {
+            if (obj is Int32Literal)
+            {
+                return (obj as Int32Literal).Value.Equals(Value);
+            }
+            return false;
+        }
+        #endregion
+
     }
 }

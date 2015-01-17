@@ -14,17 +14,6 @@ namespace EvalutionCS.Ast
         public UnaryOperator UnaryOperator { get; set; }
         public Expression Expression { get; set; }
 
-        public override bool Equals(object obj)
-        {
-            if (obj is UnaryExpression)
-            {
-                var typedObj = obj as UnaryExpression;
-                return typedObj.UnaryOperator.Equals(UnaryOperator)
-                       && typedObj.Expression.Equals(Expression);
-            }
-            return false;
-        }
-
         public override void BuildBody(ILGenerator li, Context ctx)
         {
             if (UnaryOperator == UnaryOperator.Negate)
@@ -51,5 +40,19 @@ namespace EvalutionCS.Ast
         {
             return Expression.GetExpressionType(ctx);
         }
+
+        #region Equals
+        public override bool Equals(object obj)
+        {
+            if (obj is UnaryExpression)
+            {
+                var typedObj = obj as UnaryExpression;
+                return typedObj.UnaryOperator.Equals(UnaryOperator)
+                       && typedObj.Expression.Equals(Expression);
+            }
+            return false;
+        }
+        #endregion
+
     }
 }

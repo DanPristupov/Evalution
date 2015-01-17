@@ -17,24 +17,6 @@ namespace EvalutionCS.Ast
         public string Identifier { get; set; }
         public List<Expression> Arguments { get; set; }
 
-        public override bool Equals(object obj)
-        {
-            if (obj is ObjectContextMethodCall)
-            {
-                var typedObj = obj as ObjectContextMethodCall;
-                for (var i = 0; i < Arguments.Count; i++)
-                {
-                    if (!Arguments[i].Equals(typedObj.Arguments[i]))
-                    {
-                        return false;
-                    }
-                }
-                return typedObj.Identifier.Equals(Identifier)
-                       && typedObj.Multicall.Equals(Multicall);
-            }
-            return false;
-        }
-
         public override Type BuildBody(ILGenerator il, Context ctx)
         {
             var subPropertyType = Multicall.BuildBody(il, ctx);
@@ -62,5 +44,26 @@ namespace EvalutionCS.Ast
             var subPropertyType = Multicall.GetExpressionType(ctx);
             return ctx.TypeCache.GetTypeMethod(subPropertyType, Identifier).ReturnType;
         }
+
+        #region Equals
+        public override bool Equals(object obj)
+        {
+            if (obj is ObjectContextMethodCall)
+            {
+                var typedObj = obj as ObjectContextMethodCall;
+                for (var i = 0; i < Arguments.Count; i++)
+                {
+                    if (!Arguments[i].Equals(typedObj.Arguments[i]))
+                    {
+                        return false;
+                    }
+                }
+                return typedObj.Identifier.Equals(Identifier)
+                       && typedObj.Multicall.Equals(Multicall);
+            }
+            return false;
+        }
+
+        #endregion
     }
 }

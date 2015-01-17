@@ -16,23 +16,6 @@ namespace EvalutionCS.Ast
         public string Identifier { get; set; }
         public List<Expression> Arguments { get; set; }
 
-        public override bool Equals(object obj)
-        {
-            if (obj is CurrentContextMethodCall)
-            {
-                var typedObj = obj as CurrentContextMethodCall;
-                for (var i = 0; i < Arguments.Count; i++)
-                {
-                    if (!Arguments[i].Equals(typedObj.Arguments[i]))
-                    {
-                        return false;
-                    }
-                }
-                return typedObj.Identifier.Equals(Identifier);
-            }
-            return false;
-        }
-
         public override Type BuildBody(ILGenerator il, Context ctx)
         {
             var result = GetDefaultContextMethod(ctx);
@@ -82,5 +65,24 @@ namespace EvalutionCS.Ast
             throw new InvalidNameException(Identifier);
         }
 
+        #region Equals
+
+        public override bool Equals(object obj)
+        {
+            if (obj is CurrentContextMethodCall)
+            {
+                var typedObj = obj as CurrentContextMethodCall;
+                for (var i = 0; i < Arguments.Count; i++)
+                {
+                    if (!Arguments[i].Equals(typedObj.Arguments[i]))
+                    {
+                        return false;
+                    }
+                }
+                return typedObj.Identifier.Equals(Identifier);
+            }
+            return false;
+        }
+        #endregion
     }
 }

@@ -12,6 +12,18 @@ namespace EvalutionCS.Ast
 
         public Multicall Multicall { get; set; }
 
+        public override void BuildBody(ILGenerator il, Context ctx)
+        {
+            Multicall.BuildBody(il, ctx);
+        }
+
+        public override Type GetExpressionType(Context ctx)
+        {
+            return Multicall.GetExpressionType(ctx);
+        }
+
+        #region Equals
+
         public override bool Equals(object obj)
         {
             if (obj is MultiCallExpression)
@@ -22,14 +34,6 @@ namespace EvalutionCS.Ast
             return false;
         }
 
-        public override void BuildBody(ILGenerator il, Context ctx)
-        {
-            Multicall.BuildBody(il, ctx);
-        }
-
-        public override Type GetExpressionType(Context ctx)
-        {
-            return Multicall.GetExpressionType(ctx);
-        }
+        #endregion
     }
 }

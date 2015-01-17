@@ -14,15 +14,6 @@ namespace EvalutionCS.Ast
 
         public double Value { get; set; }
 
-        public override bool Equals(object obj)
-        {
-            if (obj is DoubleLiteral)
-            {
-                return (obj as DoubleLiteral).Value.Equals(Value);
-            }
-            return false;
-        }
-
         public override void LoadConstant(ILGenerator il)
         {
             il.Emit(OpCodes.Ldc_R8, Value);
@@ -32,5 +23,17 @@ namespace EvalutionCS.Ast
         {
             return _type;
         }
+
+        #region Equals
+        public override bool Equals(object obj)
+        {
+            if (obj is DoubleLiteral)
+            {
+                return (obj as DoubleLiteral).Value.Equals(Value);
+            }
+            return false;
+        }
+        #endregion
+
     }
 }

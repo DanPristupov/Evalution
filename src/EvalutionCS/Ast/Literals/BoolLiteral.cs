@@ -8,14 +8,6 @@ namespace EvalutionCS.Ast
         private static Type _type = typeof(bool);
 
         public bool Value { get; set; }
-        public override bool Equals(object obj)
-        {
-            if (obj is BoolLiteral)
-            {
-                return (obj as BoolLiteral).Value.Equals(Value);
-            }
-            return false;
-        }
 
         public override void LoadConstant(ILGenerator il)
         {
@@ -26,5 +18,16 @@ namespace EvalutionCS.Ast
         {
             return _type;
         }
+
+        #region Equals
+        public override bool Equals(object obj)
+        {
+            if (obj is BoolLiteral)
+            {
+                return (obj as BoolLiteral).Value.Equals(Value);
+            }
+            return false;
+        }
+        #endregion
     }
 }

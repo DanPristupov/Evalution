@@ -16,18 +16,6 @@
         public BinaryOperator BinaryOperator { get; set; }
         public Expression RightExpression { get; set; }
 
-        public override bool Equals(object obj)
-        {
-            if (obj is BinaryExpression)
-            {
-                var typedObj = obj as BinaryExpression;
-                return typedObj.LeftExpression.Equals(LeftExpression)
-                       && typedObj.BinaryOperator.Equals(BinaryOperator)
-                       && typedObj.RightExpression.Equals(RightExpression);
-            }
-            return false;
-        }
-
         public override void BuildBody(ILGenerator il, Context ctx)
         {
             var leftType = LeftExpression.GetExpressionType(ctx);
@@ -94,5 +82,21 @@
         {
             return LeftExpression.GetExpressionType(ctx);
         }
+
+        #region Equals
+
+        public override bool Equals(object obj)
+        {
+            if (obj is BinaryExpression)
+            {
+                var typedObj = obj as BinaryExpression;
+                return typedObj.LeftExpression.Equals(LeftExpression)
+                       && typedObj.BinaryOperator.Equals(BinaryOperator)
+                       && typedObj.RightExpression.Equals(RightExpression);
+            }
+            return false;
+        }
+
+        #endregion
     }
 }
