@@ -60,6 +60,7 @@
     <Compile Include="Exceptions\EvalutionException.cs" />
     <Compile Include="Exceptions\InvalidNameException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Property.cs" />
     <Compile Include="PropertyDefinition.cs" />
     <Compile Include="TypeCache.cs" />
   </ItemGroup>

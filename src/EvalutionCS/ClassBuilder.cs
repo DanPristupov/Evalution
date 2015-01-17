@@ -184,24 +184,9 @@
         {
             return base.Setup((property.Body as System.Linq.Expressions.MemberExpression).Member.Name, expression) as ClassBuilder<T>;
         }
-    }
-
-    public class Property
-    {
-        public Property(PropertyDefinition propertyDefinition, PropertyBuilder propertyBuilder, MethodBuilder methodBuilder)
+        public ClassBuilder<T> SetupRuntime(string propertyName, Type propertyType, string expression)
         {
-            PropertyDefinition = propertyDefinition;
-            PropertyInfo = propertyBuilder;
-            MethodInfo = methodBuilder;
+            return base.SetupRuntime(propertyName, propertyType, expression) as ClassBuilder<T>;
         }
-
-        public string Name
-        {
-            get { return PropertyInfo.Name; }
-        }
-
-        public PropertyDefinition PropertyDefinition { get; set; }
-        public PropertyInfo PropertyInfo { get; private set; }
-        public MethodInfo MethodInfo { get; private set; }
     }
 }
