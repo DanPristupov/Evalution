@@ -5,6 +5,8 @@ namespace EvalutionCS.Ast
 
     public class DoubleLiteral : Literal
     {
+        private static Type _type = typeof(Double);
+
         public DoubleLiteral(double value)
         {
             Value = value;
@@ -28,7 +30,7 @@ namespace EvalutionCS.Ast
 
         public override Type GetExpressionType()
         {
-            return typeof (double);
+            return _type;
         }
     }
 }

@@ -5,6 +5,8 @@ namespace EvalutionCS.Ast
 
     public class Int32Literal : Literal
     {
+        private static Type _type = typeof(Int32);
+
         public Int32Literal(int value)
         {
             Value = value;
@@ -28,7 +30,7 @@ namespace EvalutionCS.Ast
 
         public override Type GetExpressionType()
         {
-            return typeof (int);
+            return _type;
         }
     }
 }

@@ -5,6 +5,8 @@ namespace EvalutionCS.Ast
 
     public class BoolLiteral : Literal
     {
+        private static Type _type = typeof(bool);
+
         public bool Value { get; set; }
         public override bool Equals(object obj)
         {
@@ -17,12 +19,12 @@ namespace EvalutionCS.Ast
 
         public override void LoadConstant(ILGenerator il)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public override Type GetExpressionType()
         {
-            return typeof (bool);
+            return _type;
         }
     }
 }
