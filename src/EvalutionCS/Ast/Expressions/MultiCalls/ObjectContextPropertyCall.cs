@@ -1,7 +1,7 @@
 namespace EvalutionCS.Ast
 {
     using System;
-    using Sigil.NonGeneric;
+    using System.Reflection.Emit;
 
     public class ObjectContextPropertyCall : Multicall
     {
@@ -24,17 +24,23 @@ namespace EvalutionCS.Ast
             return false;
         }
 
-        public override Type BuildBody(Emit emitter, Context ctx)
+        public override Type BuildBody(ILGenerator il, Context ctx)
         {
-            var subPropertyType = Multicall.BuildBody(emitter, ctx);
+            var subPropertyType = Multicall.BuildBody(il, ctx);
             if (subPropertyType.IsValueType && !subPropertyType.IsPrimitive)
             {
-                emitter.DeclareLocal(subPropertyType, "value1");
-                emitter.StoreLocal("value1");
-                emitter.LoadLocalAddress("value1");
+                var local = il.DeclareLocal(subPropertyType);
+                il.Emit(OpCodes.Stloc, local.LocalIndex);
+                il.Emit(OpCodes.Ldloca_S, local.LocalIndex);
+
+//                emitter.DeclareLocal(subPropertyType, "value1");
+//                emitter.StoreLocal("value1");
+//                emitter.LoadLocalAddress("value1");
             }
             var propertyMethod = ctx.TypeCache.GetTypePropertyMethod(subPropertyType, Identifier);
-            emitter.CallVirtual(propertyMethod);
+//            emitter.CallVirtual(propertyMethod);
+            il.Emit(OpCodes.Callvirt, propertyMethod);
+
             return propertyMethod.ReturnType;
         }
 

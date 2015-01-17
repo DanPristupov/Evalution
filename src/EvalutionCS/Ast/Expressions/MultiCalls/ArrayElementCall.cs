@@ -1,7 +1,7 @@
 namespace EvalutionCS.Ast
 {
     using System;
-    using Sigil.NonGeneric;
+    using System.Reflection.Emit;
 
     public class ArrayElementCall : Multicall
     {
@@ -24,15 +24,15 @@ namespace EvalutionCS.Ast
             return false;
         }
 
-        public override Type BuildBody(Emit emitter, Context ctx)
+        public override Type BuildBody(ILGenerator il, Context ctx)
         {
-            var subPropertyType = Multicall.BuildBody(emitter, ctx);
-            Expression.BuildBody(emitter, ctx);
+            var subPropertyType = Multicall.BuildBody(il, ctx);
+            Expression.BuildBody(il, ctx);
 
             var elementType = subPropertyType.GetElementType();
-            emitter.LoadElement(elementType);
+//            emitter.LoadElement(elementType);
+            il.Emit(OpCodes.Ldelem, elementType);
             return elementType;
-
         }
 
         public override Type GetExpressionType(Context ctx)

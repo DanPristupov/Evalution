@@ -7,7 +7,6 @@
     using System.Reflection;
     using System.Reflection.Emit;
     using Ast;
-    using Sigil.NonGeneric;
 
     public class ClassBuilder
     {
@@ -71,16 +70,25 @@
         private MethodBuilder CreateGetPropertyMethodBuilder(TypeBuilder typeBuilder, PropertyDefinition propertyDefinition, Context ctx)
         {
             var propertyName = propertyDefinition.PropertyName;
-            var emitter = Emit.BuildMethod(propertyDefinition.PropertyType, new Type[0], typeBuilder,
-                "get_" + propertyName,
+
+            var methodBuilder = typeBuilder.DefineMethod("get_" + propertyName,
                 MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig |
-                MethodAttributes.Virtual,
-                CallingConventions.Standard | CallingConventions.HasThis);
+                MethodAttributes.Virtual, CallingConventions.Standard | CallingConventions.HasThis,
+                propertyDefinition.PropertyType, new Type[0]);
+            var ilGen = methodBuilder.GetILGenerator();
+//            var emitter = Emit.BuildMethod(propertyDefinition.PropertyType, new Type[0], typeBuilder,
+//                "get_" + propertyName,
+//                MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig |
+//                MethodAttributes.Virtual,
+//                CallingConventions.Standard | CallingConventions.HasThis);
 
             var expression = AstBuilder.Build(propertyDefinition.Expression);
-            expression.BuildBody(emitter, ctx);
-            emitter.Return();
-            return emitter.CreateMethod();
+//            expression.BuildBody(emitter, ctx);
+            expression.BuildBody(ilGen, ctx);
+//            emitter.Return();
+            ilGen.Emit(OpCodes.Ret);
+//            return emitter.CreateMethod();
+            return methodBuilder;
         }
 
         private IEnumerable<Type> ObjectContexts
@@ -125,15 +133,22 @@
         {
             var parameters = ctor.GetParameters();
             var paramTypes = parameters.Select(x => x.ParameterType).ToArray();
-            var emit = Emit.BuildConstructor(paramTypes, typeBuilder, MethodAttributes.Public, CallingConventions.HasThis);
-            emit.LoadArgument((UInt16) 0);
+
+            var ctorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.HasThis, paramTypes);
+            var ilGen = ctorBuilder.GetILGenerator();
+            ilGen.Emit(OpCodes.Ldarg_0);
+//            var emit = Emit.BuildConstructor(paramTypes, typeBuilder, MethodAttributes.Public, CallingConventions.HasThis);
+//            emit.LoadArgument((UInt16) 0);
             for (var i = 0; i < parameters.Length; i++)
             {
-                emit.LoadArgument((UInt16) (i + 1));
+//                emit.LoadArgument((UInt16) (i + 1));
+                ilGen.Emit(OpCodes.Ldarg, (UInt16)(i + 1));
             }
-            emit.Call(ctor);
-            emit.Return();
-            emit.CreateConstructor();
+            ilGen.Emit(OpCodes.Call, ctor);
+            ilGen.Emit(OpCodes.Ret);
+//            emit.Call(ctor);
+//            emit.Return();
+//            emit.CreateConstructor();
         }
 
         public ClassBuilder Setup(string property, string expression)

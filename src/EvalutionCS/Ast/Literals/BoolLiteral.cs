@@ -1,7 +1,7 @@
 namespace EvalutionCS.Ast
 {
     using System;
-    using Sigil.NonGeneric;
+    using System.Reflection.Emit;
 
     public class BoolLiteral : Literal
     {
@@ -15,7 +15,7 @@ namespace EvalutionCS.Ast
             return false;
         }
 
-        public override void LoadConstant(Emit emitter)
+        public override void LoadConstant(ILGenerator il)
         {
             throw new System.NotImplementedException();
         }
