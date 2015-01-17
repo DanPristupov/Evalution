@@ -1,4 +1,4 @@
-﻿namespace EvalutionCS
+﻿namespace Evalution
 {
     using System;
     using System.Collections.Generic;

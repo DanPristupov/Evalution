@@ -1,9 +1,9 @@
 using System;
 using NUnit.Framework;
 
-namespace Evalution.CSharpTest
+namespace Evalution.Tests
 {
-    using EvalutionCS;
+    using Evalution;
 
     // todo: make a test that the injection target property is virtual or abstract
     // todo: make a test to check the variable name priorities: current class - environment static class, environment class

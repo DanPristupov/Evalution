@@ -1,7 +1,7 @@
-namespace Evalution.CSharpTest
+namespace Evalution.Tests
 {
     using System.Collections.Generic;
-    using EvalutionCS.Ast;
+    using Evalution.Ast;
     using NUnit.Framework;
 
     [TestFixture]

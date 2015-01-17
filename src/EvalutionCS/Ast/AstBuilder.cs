@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace EvalutionCS.Ast
+namespace Evalution.Ast
 {
     using Piglet.Parser;
 

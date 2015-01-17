@@ -1,4 +1,4 @@
-namespace EvalutionCS.Ast
+namespace Evalution.Ast
 {
     using System;
     using System.Reflection.Emit;

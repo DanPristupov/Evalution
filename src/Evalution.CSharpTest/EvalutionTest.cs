@@ -1,9 +1,9 @@
 ﻿using System;
 using NUnit.Framework;
 
-namespace Evalution.CSharpTest
+namespace Evalution.Tests
 {
-    using EvalutionCS;
+    using Evalution;
 
     [TestFixture]
     public class ClassBuilderTest
