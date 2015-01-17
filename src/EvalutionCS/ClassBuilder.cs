@@ -52,35 +52,43 @@
             var typeBuilder = CreateTypeBuilder(_targetType);
 
             var ctx = new Context(_typeCache, _targetType, ObjectContexts);
+            
             foreach (var propertyDefinition in _propertyDefinitions)
             {
-                BuildProperty(typeBuilder, propertyDefinition, ctx);
+                ctx.ObjectProperties.Add(InitializeProperty(typeBuilder, propertyDefinition));
+            }
+
+            foreach (var property in ctx.ObjectProperties)
+            {
+                BuildProperty(property.MethodInfo as MethodBuilder,
+                    property.PropertyInfo as PropertyBuilder,
+                    property.PropertyDefinition,
+                    ctx);
             }
             return typeBuilder.CreateType();
         }
 
-        private void BuildProperty(TypeBuilder typeBuilder, PropertyDefinition propertyDefinition, Context ctx)
+        private void BuildProperty(MethodBuilder methodBuilder, PropertyBuilder propertyBuilder, PropertyDefinition prop, Context ctx)
         {
-            var propertyBuilder = typeBuilder.DefineProperty(propertyDefinition.PropertyName,
-                PropertyAttributes.HasDefault, propertyDefinition.PropertyType, null);
-            var getMethodBuilder = CreateGetPropertyMethodBuilder(typeBuilder, propertyDefinition, ctx);
+            var ilGen = methodBuilder.GetILGenerator();
+
+            var expression = AstBuilder.Build(prop.Expression);
+            expression.BuildBody(ilGen, ctx);
+            ilGen.Emit(OpCodes.Ret);
+            var getMethodBuilder = methodBuilder;
             propertyBuilder.SetGetMethod(getMethodBuilder);
         }
 
-        private MethodBuilder CreateGetPropertyMethodBuilder(TypeBuilder typeBuilder, PropertyDefinition propertyDefinition, Context ctx)
+        private static Property InitializeProperty(TypeBuilder typeBuilder, PropertyDefinition prop)
         {
-            var propertyName = propertyDefinition.PropertyName;
+            var propertyBuilder = typeBuilder.DefineProperty(prop.PropertyName,
+                PropertyAttributes.HasDefault, prop.PropertyType, null);
 
-            var methodBuilder = typeBuilder.DefineMethod("get_" + propertyName,
+            var methodBuilder = typeBuilder.DefineMethod("get_" + prop.PropertyName,
                 MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig |
                 MethodAttributes.Virtual, CallingConventions.Standard | CallingConventions.HasThis,
-                propertyDefinition.PropertyType, new Type[0]);
-            var ilGen = methodBuilder.GetILGenerator();
-
-            var expression = AstBuilder.Build(propertyDefinition.Expression);
-            expression.BuildBody(ilGen, ctx);
-            ilGen.Emit(OpCodes.Ret);
-            return methodBuilder;
+                prop.PropertyType, new Type[0]);
+            return new Property(prop, propertyBuilder, methodBuilder);
         }
 
         private IEnumerable<Type> ObjectContexts
@@ -147,9 +155,10 @@
             return this;
         }
 
-        public ClassBuilder SetupRuntime(string property, Type propertyType, string expression)
+        public ClassBuilder SetupRuntime(string propertyName, Type propertyType, string expression)
         {
-            throw new NotImplementedException();
+            _propertyDefinitions.Add(new PropertyDefinition(propertyName, propertyType, expression));
+            return this;
         }
     }
 
@@ -174,5 +183,24 @@
         {
             return base.Setup((property.Body as System.Linq.Expressions.MemberExpression).Member.Name, expression) as ClassBuilder<T>;
         }
+    }
+
+    public class Property
+    {
+        public Property(PropertyDefinition propertyDefinition, PropertyBuilder propertyBuilder, MethodBuilder methodBuilder)
+        {
+            PropertyDefinition = propertyDefinition;
+            PropertyInfo = propertyBuilder;
+            MethodInfo = methodBuilder;
+        }
+
+        public string Name
+        {
+            get { return PropertyInfo.Name; }
+        }
+
+        public PropertyDefinition PropertyDefinition { get; set; }
+        public PropertyInfo PropertyInfo { get; private set; }
+        public MethodInfo MethodInfo { get; private set; }
     }
 }

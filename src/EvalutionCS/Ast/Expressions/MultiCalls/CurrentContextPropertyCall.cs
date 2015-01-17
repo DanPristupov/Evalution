@@ -1,6 +1,7 @@
 namespace EvalutionCS.Ast
 {
     using System;
+    using System.Linq;
     using System.Reflection;
     using System.Reflection.Emit;
 
@@ -27,7 +28,7 @@ namespace EvalutionCS.Ast
             var result = GetDefaultContextProperty(ctx);
             var target = result.Item1;
             var method = result.Item2;
-            if (target == ctx.TargetType)
+            if (target == ctx.TargetType || target == null) // base || this
             {
                 il.Emit(OpCodes.Ldarg_0);
                 il.Emit(OpCodes.Callvirt, method);
@@ -49,8 +50,13 @@ namespace EvalutionCS.Ast
 
         private Tuple<Type, MethodInfo> GetDefaultContextProperty(Context ctx)
         {
-            // Priorities: CurrentObject, EnvironmentObject
+            // Priorities: CurrentObject, BaseObject, EnvironmentObject
 
+            var currentObjectProperty = ctx.ObjectProperties.FirstOrDefault(x => x.Name == Identifier);
+            if (currentObjectProperty != null)
+            {
+                return new Tuple<Type, MethodInfo>(null, currentObjectProperty.PropertyInfo.GetGetMethod());
+            }
             foreach (var objectContext in ctx.ObjectContexts)
             {
                 var propertyInfo = ctx.TypeCache.GetTypeProperty(objectContext, Identifier);
