@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Linq.Expressions;
     using System.Reflection;
     using System.Reflection.Emit;
     using Ast;
@@ -13,9 +12,9 @@
         private readonly Type _targetType;
 
         private Type _resultType = null;
-        private List<Type> _environmentClasses = new List<Type>();
-        private List<PropertyDefinition> _propertyDefinitions = new List<PropertyDefinition>();
-        private TypeCache _typeCache = new TypeCache();
+        private readonly List<Type> _environmentClasses = new List<Type>();
+        private readonly List<PropertyDefinition> _propertyDefinitions = new List<PropertyDefinition>();
+        private readonly TypeCache _typeCache = new TypeCache();
 
         public ClassBuilder(Type targetType)
         {
@@ -51,11 +50,7 @@
         {
             var typeBuilder = CreateTypeBuilder(_targetType);
 
-            var objectProperties = new List<Property>();
-            foreach (var propertyDefinition in _propertyDefinitions)
-            {
-                objectProperties.Add(InitializeProperty(typeBuilder, propertyDefinition));
-            }
+            var objectProperties = DefineProperties(typeBuilder);
 
             var ctx = new Context(_typeCache, _targetType, ObjectContexts, objectProperties);
 
@@ -69,6 +64,13 @@
             return typeBuilder.CreateType();
         }
 
+        private IEnumerable<Property> DefineProperties(TypeBuilder typeBuilder)
+        {
+            return _propertyDefinitions
+                .Select(propertyDefinition => DefineProperty(typeBuilder, propertyDefinition))
+                .ToList();
+        }
+
         private void BuildProperty(MethodBuilder methodBuilder, PropertyBuilder propertyBuilder, PropertyDefinition prop, Context ctx)
         {
             var ilGen = methodBuilder.GetILGenerator();
@@ -80,7 +82,7 @@
             propertyBuilder.SetGetMethod(getMethodBuilder);
         }
 
-        private static Property InitializeProperty(TypeBuilder typeBuilder, PropertyDefinition prop)
+        private static Property DefineProperty(TypeBuilder typeBuilder, PropertyDefinition prop)
         {
             var propertyBuilder = typeBuilder.DefineProperty(prop.PropertyName,
                 PropertyAttributes.HasDefault, prop.PropertyType, null);
@@ -106,45 +108,13 @@
 
         private TypeBuilder CreateTypeBuilder(Type baseType)
         {
-            // todo: should assemblyName be the same for all classes?
-            var assemblyName = new AssemblyName("EV_" + baseType.Name); // may be I should use assembly of the objType?
-            var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
-            var moduleBuilder = assemblyBuilder.DefineDynamicModule("EvalutionModule");
-            var typeBuilder = moduleBuilder.DefineType("EV" + baseType.Name,
-                TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.AutoClass |
-                TypeAttributes.AnsiClass | TypeAttributes.BeforeFieldInit | TypeAttributes.AutoLayout,
-                null);
+            var typeBuilder = EmitHelper.CreateTypeBuilder("EV_" + baseType.Name);
 
             typeBuilder.SetParent(baseType);
 
-            CreateProxyConstructors(typeBuilder, baseType);
+            EmitHelper.CreateProxyConstructorsToBase(typeBuilder, baseType);
 
             return typeBuilder;
-        }
-
-        private void CreateProxyConstructors(TypeBuilder typeBuilder, Type baseType)
-        {
-            foreach (var constructor in baseType.GetConstructors())
-            {
-                CreateProxyConstructor(typeBuilder, constructor);
-            }
-        }
-
-        private void CreateProxyConstructor(TypeBuilder typeBuilder, ConstructorInfo ctor)
-        {
-            var parameters = ctor.GetParameters();
-            var paramTypes = parameters.Select(x => x.ParameterType).ToArray();
-
-            var ctorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.HasThis, paramTypes);
-            var ilGen = ctorBuilder.GetILGenerator();
-            ilGen.Emit(OpCodes.Ldarg_0);
-
-            for (var i = 0; i < parameters.Length; i++)
-            {
-                ilGen.Emit(OpCodes.Ldarg, (UInt16)(i + 1));
-            }
-            ilGen.Emit(OpCodes.Call, ctor);
-            ilGen.Emit(OpCodes.Ret);
         }
 
         public ClassBuilder Setup(string property, string expression)
@@ -160,33 +130,6 @@
         {
             _propertyDefinitions.Add(new PropertyDefinition(propertyName, propertyType, expression));
             return this;
-        }
-    }
-
-    public class ClassBuilder<T> : ClassBuilder where T : class
-    {
-        public ClassBuilder()
-            : base(typeof (T))
-        {
-        }
-
-        public ClassBuilder<T> AddEnvironment(Type environmentClass)
-        {
-            return base.AddEnvironment(environmentClass) as ClassBuilder<T>;
-        }
-
-        public T BuildObject(params object[] parameters)
-        {
-            return base.BuildObject(parameters) as T;
-        }
-
-        public ClassBuilder<T> Setup<TProperty>(Expression<Func<T, TProperty>> property, string expression)
-        {
-            return base.Setup((property.Body as System.Linq.Expressions.MemberExpression).Member.Name, expression) as ClassBuilder<T>;
-        }
-        public ClassBuilder<T> SetupRuntime(string propertyName, Type propertyType, string expression)
-        {
-            return base.SetupRuntime(propertyName, propertyType, expression) as ClassBuilder<T>;
         }
     }
 }
