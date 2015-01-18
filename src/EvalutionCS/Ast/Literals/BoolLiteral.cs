@@ -1,11 +1,25 @@
-namespace EvalutionCS.Ast
+namespace Evalution.Ast
 {
     using System;
-    using Sigil.NonGeneric;
+    using System.Reflection.Emit;
 
     public class BoolLiteral : Literal
     {
+        private static Type _type = typeof(bool);
+
         public bool Value { get; set; }
+
+        public override void LoadConstant(ILGenerator il)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Type GetExpressionType()
+        {
+            return _type;
+        }
+
+        #region Equals
         public override bool Equals(object obj)
         {
             if (obj is BoolLiteral)
@@ -14,15 +28,6 @@ namespace EvalutionCS.Ast
             }
             return false;
         }
-
-        public override void LoadConstant(Emit emitter)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override Type GetExpressionType()
-        {
-            return typeof (bool);
-        }
+        #endregion
     }
 }

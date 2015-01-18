@@ -1,22 +1,20 @@
-﻿namespace EvalutionCS
+﻿namespace Evalution
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Linq.Expressions;
     using System.Reflection;
     using System.Reflection.Emit;
     using Ast;
-    using Sigil.NonGeneric;
 
     public class ClassBuilder
     {
         private readonly Type _targetType;
 
         private Type _resultType = null;
-        private List<Type> _environmentClasses = new List<Type>();
-        private List<PropertyDefinition> _propertyDefinitions = new List<PropertyDefinition>();
-        private TypeCache _typeCache = new TypeCache();
+        private readonly List<Type> _environmentClasses = new List<Type>();
+        private readonly List<PropertyDefinition> _propertyDefinitions = new List<PropertyDefinition>();
+        private readonly TypeCache _typeCache = new TypeCache();
 
         public ClassBuilder(Type targetType)
         {
@@ -52,36 +50,72 @@
         {
             var typeBuilder = CreateTypeBuilder(_targetType);
 
-            var ctx = new Context(_typeCache, _targetType, ObjectContexts);
-            foreach (var propertyDefinition in _propertyDefinitions)
+            var objectProperties = DefineProperties(typeBuilder).ToArray();
+
+            var ctx = new Context(_typeCache, _targetType, ObjectContexts, objectProperties);
+
+            foreach (var property in ctx.ObjectProperties)
             {
-                BuildProperty(typeBuilder, propertyDefinition, ctx);
+                BuildProperty(typeBuilder,
+                    property.GetMethodBuilder as MethodBuilder,
+                    property.PropertyBuilder as PropertyBuilder,
+                    property.PropertyDefinition,
+                    property,
+                    ctx);
             }
             return typeBuilder.CreateType();
         }
 
-        private void BuildProperty(TypeBuilder typeBuilder, PropertyDefinition propertyDefinition, Context ctx)
+        private IEnumerable<Property> DefineProperties(TypeBuilder typeBuilder)
         {
-            var propertyBuilder = typeBuilder.DefineProperty(propertyDefinition.PropertyInfo.Name,
-                PropertyAttributes.HasDefault, propertyDefinition.PropertyInfo.PropertyType, null);
-            var getMethodBuilder = CreateGetPropertyMethodBuilder(typeBuilder, propertyDefinition, ctx);
-            propertyBuilder.SetGetMethod(getMethodBuilder);
+            foreach (var propertyDefinition in _propertyDefinitions)
+            {
+                var property = DefineProperty(typeBuilder, propertyDefinition);
+                yield return property;
+            }
         }
 
-        private MethodBuilder CreateGetPropertyMethodBuilder(TypeBuilder typeBuilder, PropertyDefinition propertyDefinition, Context ctx)
+        private void BuildProperty(TypeBuilder typeBuilder, MethodBuilder methodBuilder, PropertyBuilder propertyBuilder, PropertyDefinition prop, Property property, Context ctx)
         {
-            var propertyName = propertyDefinition.PropertyInfo.Name;
-            var emitter = Emit.BuildMethod(propertyDefinition.PropertyInfo.PropertyType, new Type[0], typeBuilder,
-                "get_" + propertyName,
-                MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig |
-                MethodAttributes.Virtual,
-                CallingConventions.Standard | CallingConventions.HasThis);
 
-            var expression = AstBuilder.Build(propertyDefinition.Expression);
-            expression.BuildBody(emitter, ctx);
-            emitter.Return();
-            return emitter.CreateMethod();
+            if (!string.IsNullOrEmpty(prop.Expression))
+            {
+                var ilGen = property.GetMethodBuilder.GetILGenerator();
+                var expression = AstBuilder.Build(prop.Expression);
+                expression.BuildBody(ilGen, ctx);
+                ilGen.Emit(OpCodes.Ret);
+                property.PropertyBuilder.SetGetMethod(property.GetMethodBuilder);
+            }
+            else
+            {
+                EmitHelper.BuildAutoProperty(typeBuilder,
+                    property.PropertyBuilder,
+                    property.GetMethodBuilder,
+                    property.SetMethodBuilder);
+            }
         }
+
+        private static Property DefineProperty(TypeBuilder typeBuilder, PropertyDefinition prop)
+        {
+            var propertyBuilder = EmitHelper.DefineProperty(typeBuilder, prop.PropertyName, prop.PropertyType);
+
+            if (!string.IsNullOrEmpty(prop.Expression))
+            {
+                // todo: why virtual? I don't want it to be virtual
+                var getMethodBuilder = EmitHelper.DefineVirtualGetMethod(typeBuilder, prop.PropertyName, prop.PropertyType);
+                return new Property(prop, propertyBuilder, getMethodBuilder);
+            }
+            else
+            {
+                // todo: remove virtual
+                var getMethodBuilder = EmitHelper.DefineVirtualGetMethod(typeBuilder, prop.PropertyName, prop.PropertyType);
+                var setMethodBuilder = EmitHelper.DefineVirtualSetMethod(typeBuilder, prop.PropertyName, prop.PropertyType);
+                return new Property(prop, propertyBuilder, getMethodBuilder, setMethodBuilder);
+            }
+        }
+
+
+
 
         private IEnumerable<Type> ObjectContexts
         {
@@ -97,80 +131,37 @@
 
         private TypeBuilder CreateTypeBuilder(Type baseType)
         {
-            // todo: should assemblyName be the same for all classes?
-            var assemblyName = new AssemblyName("EV_" + baseType.Name); // may be I should use assembly of the objType?
-            var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
-            var moduleBuilder = assemblyBuilder.DefineDynamicModule("EvalutionModule");
-            var typeBuilder = moduleBuilder.DefineType("EV" + baseType.Name,
-                TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.AutoClass |
-                TypeAttributes.AnsiClass | TypeAttributes.BeforeFieldInit | TypeAttributes.AutoLayout,
-                null);
+            var typeBuilder = EmitHelper.CreateTypeBuilder("EV_" + baseType.Name);
 
             typeBuilder.SetParent(baseType);
 
-            CreateProxyConstructors(typeBuilder, baseType);
+            EmitHelper.CreateProxyConstructorsToBase(typeBuilder, baseType);
 
             return typeBuilder;
         }
 
-        private void CreateProxyConstructors(TypeBuilder typeBuilder, Type baseType)
-        {
-            foreach (var constructor in baseType.GetConstructors())
-            {
-                CreateProxyConstructor(typeBuilder, constructor);
-            }
-        }
-
-        private void CreateProxyConstructor(TypeBuilder typeBuilder, ConstructorInfo ctor)
-        {
-            var parameters = ctor.GetParameters();
-            var paramTypes = parameters.Select(x => x.ParameterType).ToArray();
-            var emit = Emit.BuildConstructor(paramTypes, typeBuilder, MethodAttributes.Public, CallingConventions.HasThis);
-            emit.LoadArgument((UInt16) 0);
-            for (var i = 0; i < parameters.Length; i++)
-            {
-                emit.LoadArgument((UInt16) (i + 1));
-            }
-            emit.Call(ctor);
-            emit.Return();
-            emit.CreateConstructor();
-        }
-
+        // todo: rename to OverrideProperty?
         public ClassBuilder Setup(string property, string expression)
         {
             CheckResultTypeIsNotBuilt();
             var propertyInfo = _typeCache.GetTypeProperty(_targetType, property);
 
-            _propertyDefinitions.Add(new PropertyDefinition(propertyInfo, expression));
+            _propertyDefinitions.Add(new PropertyDefinition(propertyInfo.Name, propertyInfo.PropertyType, expression));
             return this;
         }
 
-        public ClassBuilder SetupRuntime(string property, Type propertyType, string expression)
+        // todo: rename to DefineProperty?
+        public ClassBuilder SetupRuntime(string propertyName, Type propertyType, string expression)
         {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class ClassBuilder<T> : ClassBuilder where T : class
-    {
-        public ClassBuilder()
-            : base(typeof (T))
-        {
+            _propertyDefinitions.Add(new PropertyDefinition(propertyName, propertyType, expression));
+            return this;
         }
 
-        public ClassBuilder<T> AddEnvironment(Type environmentClass)
+        // todo: rename to DefineProperty?
+        public ClassBuilder SetupRuntime(string propertyName, Type propertyType)
         {
-            return base.AddEnvironment(environmentClass) as ClassBuilder<T>;
-        }
-
-        public T BuildObject(params object[] parameters)
-        {
-            return base.BuildObject(parameters) as T;
-        }
-
-        public ClassBuilder<T> Setup<TProperty>(Expression<Func<T, TProperty>> property, string expression)
-        {
-            return base.Setup((property.Body as System.Linq.Expressions.MemberExpression).Member.Name, expression) as ClassBuilder<T>;
+            _propertyDefinitions.Add(new PropertyDefinition(propertyName, propertyType));
+            return this;
         }
     }
 }

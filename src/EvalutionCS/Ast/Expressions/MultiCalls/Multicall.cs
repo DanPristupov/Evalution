@@ -3,9 +3,9 @@ namespace Evalution.Ast
     using System;
     using System.Reflection.Emit;
 
-    public abstract class Expression
+    public abstract class Multicall
     {
-        public abstract void BuildBody(ILGenerator emitter, Context ctx);
+        public abstract Type BuildBody(ILGenerator emitter, Context ctx);
         public abstract Type GetExpressionType(Context ctx);
     }
 }

@@ -1,7 +1,7 @@
-﻿namespace EvalutionCS.Ast
+﻿namespace Evalution.Ast
 {
     using System;
-    using Sigil.NonGeneric;
+    using System.Reflection.Emit;
 
     public class BinaryExpression : Expression
     {
@@ -16,6 +16,60 @@
         public BinaryOperator BinaryOperator { get; set; }
         public Expression RightExpression { get; set; }
 
+        public override void BuildBody(ILGenerator il, Context ctx)
+        {
+            var leftType = LeftExpression.GetExpressionType(ctx);
+            var rightType = RightExpression.GetExpressionType(ctx);
+
+            LeftExpression.BuildBody(il, ctx);
+            RightExpression.BuildBody(il, ctx);
+
+            switch (BinaryOperator)
+            {
+                case BinaryOperator.Add:
+                    if (IsPrimitiveType(leftType))
+                    {
+                        il.Emit(OpCodes.Add);
+                    }
+                    else
+                    {
+                        il.Emit(OpCodes.Call, leftType.GetMethod("op_Addition", new[] { leftType, rightType }));
+                    }
+                    return;
+                case BinaryOperator.Subtract:
+                    if (IsPrimitiveType(leftType))
+                    {
+                        il.Emit(OpCodes.Sub);
+                    }
+                    else
+                    {
+                        il.Emit(OpCodes.Call, leftType.GetMethod("op_Subtraction", new[] { leftType, rightType }));
+                    }
+                    return;
+                case BinaryOperator.Multiply:
+                    il.Emit(OpCodes.Mul);
+                    return;
+                case BinaryOperator.Divide:
+                    il.Emit(OpCodes.Div);
+                    return;
+                default:
+                    throw new Exception("Unknown binary operator");
+            }
+        }
+
+        private bool IsPrimitiveType(Type type)
+        {
+            return type == typeof(int) || type == typeof(double);
+        }
+
+
+        public override Type GetExpressionType(Context ctx)
+        {
+            return LeftExpression.GetExpressionType(ctx);
+        }
+
+        #region Equals
+
         public override bool Equals(object obj)
         {
             if (obj is BinaryExpression)
@@ -28,71 +82,6 @@
             return false;
         }
 
-        public override void BuildBody(Emit emitter, Context ctx)
-        {
-            var leftType = LeftExpression.GetExpressionType(ctx);
-            var rightType = RightExpression.GetExpressionType(ctx);
-
-            if (BinaryOperator == BinaryOperator.Add)
-            {
-                LeftExpression.BuildBody(emitter, ctx);
-                RightExpression.BuildBody(emitter, ctx);
-                if (IsPrimitiveType(leftType))
-                {
-                    emitter.Add();
-                }
-                else
-                {
-                    var addMethod = leftType.GetMethod("op_Addition", new[] { leftType, rightType });
-                    emitter.Call(addMethod);
-                }
-                return;
-            }
-            if (BinaryOperator == BinaryOperator.Subtract)
-            {
-                LeftExpression.BuildBody(emitter, ctx);
-                RightExpression.BuildBody(emitter, ctx);
-                if (IsPrimitiveType(leftType))
-                {
-                    emitter.Subtract();
-                }
-                else
-                {
-                    var subtractMethod = leftType.GetMethod("op_Subtraction", new[] { leftType, rightType });
-                    emitter.Call(subtractMethod);
-                }
-                return;
-            }
-            if (BinaryOperator == BinaryOperator.Multiply)
-            {
-                LeftExpression.BuildBody(emitter, ctx);
-                RightExpression.BuildBody(emitter, ctx);
-                emitter.Multiply();
-                return;
-            }
-            if (BinaryOperator == BinaryOperator.Divide)
-            {
-                LeftExpression.BuildBody(emitter, ctx);
-                RightExpression.BuildBody(emitter, ctx);
-                emitter.Divide();
-                return;
-            }
-            throw new Exception("Unknown binary operator");
-        }
-
-        private bool IsPrimitiveType(Type type)
-        {
-            if (type == typeof(int) || type == typeof(double))
-            {
-                return true;
-            }
-            return false;
-        }
-
-
-        public override Type GetExpressionType(Context ctx)
-        {
-            return LeftExpression.GetExpressionType(ctx);
-        }
+        #endregion
     }
 }

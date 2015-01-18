@@ -1,8 +1,9 @@
-namespace EvalutionCS.Ast
+namespace Evalution.Ast
 {
     using System;
+    using System.Linq;
     using System.Reflection;
-    using Sigil.NonGeneric;
+    using System.Reflection.Emit;
 
     public class CurrentContextPropertyCall : Multicall
     {
@@ -13,29 +14,20 @@ namespace EvalutionCS.Ast
 
         public string Identifier { get; set; }
 
-        public override bool Equals(object obj)
-        {
-            if (obj is CurrentContextPropertyCall)
-            {
-                return (obj as CurrentContextPropertyCall).Identifier.Equals(Identifier);
-            }
-            return false;
-        }
-
-        public override Type BuildBody(Emit emitter, Context ctx)
+        public override Type BuildBody(ILGenerator il, Context ctx)
         {
             var result = GetDefaultContextProperty(ctx);
             var target = result.Item1;
             var method = result.Item2;
-            if (target == ctx.TargetType)
+            if (target == ctx.TargetType || target == null) // base || this
             {
-                emitter.LoadArgument((UInt16)0);
-                emitter.CallVirtual(method);
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Callvirt, method);
                 return method.ReturnType;
             }
             else
             {
-                emitter.Call(method);
+                il.Emit(OpCodes.Call, method);
                 return method.ReturnType;
             }
 
@@ -49,8 +41,13 @@ namespace EvalutionCS.Ast
 
         private Tuple<Type, MethodInfo> GetDefaultContextProperty(Context ctx)
         {
-            // Priorities: CurrentObject, EnvironmentObject
+            // Priorities: CurrentObject, BaseObject, EnvironmentObject
 
+            var currentObjectProperty = ctx.ObjectProperties.FirstOrDefault(x => x.Name == Identifier);
+            if (currentObjectProperty != null)
+            {
+                return new Tuple<Type, MethodInfo>(null, currentObjectProperty.PropertyBuilder.GetGetMethod());
+            }
             foreach (var objectContext in ctx.ObjectContexts)
             {
                 var propertyInfo = ctx.TypeCache.GetTypeProperty(objectContext, Identifier);
@@ -62,5 +59,17 @@ namespace EvalutionCS.Ast
             throw new InvalidNameException(Identifier);
 
         }
+
+        #region Equals
+        public override bool Equals(object obj)
+        {
+            if (obj is CurrentContextPropertyCall)
+            {
+                return (obj as CurrentContextPropertyCall).Identifier.Equals(Identifier);
+            }
+            return false;
+        }
+        #endregion
+
     }
 }

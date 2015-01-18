@@ -1,10 +1,11 @@
-namespace EvalutionCS.Ast
+namespace Evalution.Ast
 {
     using System;
-    using Sigil.NonGeneric;
+    using System.Reflection.Emit;
+
     public abstract class Literal
     {
-        public abstract void LoadConstant(Emit emitter);
+        public abstract void LoadConstant(ILGenerator emitter);
 
         public abstract Type GetExpressionType();
     }

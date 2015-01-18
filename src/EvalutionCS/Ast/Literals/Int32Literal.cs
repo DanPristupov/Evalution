@@ -1,10 +1,12 @@
-namespace EvalutionCS.Ast
+namespace Evalution.Ast
 {
     using System;
-    using Sigil.NonGeneric;
+    using System.Reflection.Emit;
 
     public class Int32Literal : Literal
     {
+        private static Type _type = typeof(Int32);
+
         public Int32Literal(int value)
         {
             Value = value;
@@ -12,6 +14,17 @@ namespace EvalutionCS.Ast
 
         public int Value { get; private set; }
 
+        public override void LoadConstant(ILGenerator il)
+        {
+            il.Emit(OpCodes.Ldc_I4, Value);
+        }
+
+        public override Type GetExpressionType()
+        {
+            return _type;
+        }
+
+        #region Equals
         public override bool Equals(object obj)
         {
             if (obj is Int32Literal)
@@ -20,15 +33,7 @@ namespace EvalutionCS.Ast
             }
             return false;
         }
+        #endregion
 
-        public override void LoadConstant(Emit emitter)
-        {
-            emitter.LoadConstant(Value);
-        }
-
-        public override Type GetExpressionType()
-        {
-            return typeof (int);
-        }
     }
 }

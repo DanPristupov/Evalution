@@ -1,9 +1,9 @@
 ﻿using System;
 using NUnit.Framework;
 
-namespace Evalution.CSharpTest
+namespace Evalution.Tests
 {
-    using EvalutionCS;
+    using Evalution;
 
     [TestFixture]
     public class ClassBuilderTest
@@ -21,6 +21,39 @@ namespace Evalution.CSharpTest
             Assert.AreEqual(6, target.ValueWithExpression); // "2+2*2"
             Assert.AreEqual(8, target.DependentValue1);     // "Value1*2"
             Assert.AreEqual(16, target.DependentValue2);    // "DependentValue1*2"
+        }
+
+        [Test]
+        public void GeneralTest_RuntimeProperties()
+        {
+            var classBuilder = new ClassBuilder(typeof(object))
+                .SetupRuntime("ValueWithExpression", typeof(int), "2+2*2")
+                .SetupRuntime("DependentValue2", typeof(int), "ValueWithExpression*2")
+                ;
+            var target = (object)classBuilder.BuildObject();
+            var type = target.GetType();
+            var valueWithExpressionValue = type.GetProperty("ValueWithExpression").GetValue(target, null);
+            var dependentValue2Value = type.GetProperty("DependentValue2").GetValue(target, null);
+            Assert.AreEqual(6, valueWithExpressionValue);
+            Assert.AreEqual(12, dependentValue2Value);
+        }
+
+        [TestCase(typeof(int), 12)]
+        [TestCase(typeof(double), 13.3)]
+        [TestCase(typeof(string), "abc")]
+        [TestCase(typeof(bool), true)]
+        public void GeneralTest_RuntimeAutoProperties(Type propertyType, object value)
+        {
+            var classBuilder = new ClassBuilder(typeof(object))
+                .SetupRuntime("AutoProperty", propertyType)
+                ;
+            var target = (object)classBuilder.BuildObject();
+
+            var resultType = target.GetType();
+            resultType.GetProperty("AutoProperty").SetValue(target, value, null);
+
+            var result = resultType.GetProperty("AutoProperty").GetValue(target, null);
+            Assert.AreEqual(value, result);
         }
 
         [Test]

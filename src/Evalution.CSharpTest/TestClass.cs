@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Evalution.CSharpTest
+namespace Evalution.Tests
 {
     public class ClassInt32
     {

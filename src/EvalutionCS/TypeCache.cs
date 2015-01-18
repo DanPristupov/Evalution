@@ -1,4 +1,4 @@
-﻿namespace EvalutionCS
+﻿namespace Evalution
 {
     using System;
     using System.Collections.Generic;
@@ -7,20 +7,17 @@
 
     public class TypeCache
     {
-        private Dictionary<Type, PropertyInfo[]> _properties = new Dictionary<Type, PropertyInfo[]>(); 
-        private Dictionary<Type, MethodInfo[]> _methods = new Dictionary<Type, MethodInfo[]>();
+        private readonly Dictionary<Type, PropertyInfo[]> _properties = new Dictionary<Type, PropertyInfo[]>(); 
+        private readonly Dictionary<Type, MethodInfo[]> _methods = new Dictionary<Type, MethodInfo[]>();
 
         public MethodInfo GetTypeMethod(Type type, string methodName)
         {
             return GetMethods(type).FirstOrDefault(x => x.Name == methodName);
         }
+
         public PropertyInfo GetTypeProperty(Type type, string propertyName)
         {
             return GetProperties(type).FirstOrDefault(x => x.Name == propertyName);
-        }
-        public MethodInfo GetTypePropertyMethod(Type type, string propertyName)
-        {
-            return GetProperties(type).FirstOrDefault(x => x.Name == propertyName).GetGetMethod();
         }
 
         private PropertyInfo[] GetProperties(Type type)

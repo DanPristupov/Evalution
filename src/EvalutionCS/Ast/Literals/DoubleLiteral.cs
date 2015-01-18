@@ -1,10 +1,12 @@
-namespace EvalutionCS.Ast
+namespace Evalution.Ast
 {
     using System;
-    using Sigil.NonGeneric;
+    using System.Reflection.Emit;
 
     public class DoubleLiteral : Literal
     {
+        private static Type _type = typeof(Double);
+
         public DoubleLiteral(double value)
         {
             Value = value;
@@ -12,6 +14,17 @@ namespace EvalutionCS.Ast
 
         public double Value { get; set; }
 
+        public override void LoadConstant(ILGenerator il)
+        {
+            il.Emit(OpCodes.Ldc_R8, Value);
+        }
+
+        public override Type GetExpressionType()
+        {
+            return _type;
+        }
+
+        #region Equals
         public override bool Equals(object obj)
         {
             if (obj is DoubleLiteral)
@@ -20,15 +33,7 @@ namespace EvalutionCS.Ast
             }
             return false;
         }
+        #endregion
 
-        public override void LoadConstant(Emit emitter)
-        {
-            emitter.LoadConstant(Value);
-        }
-
-        public override Type GetExpressionType()
-        {
-            return typeof (double);
-        }
     }
 }

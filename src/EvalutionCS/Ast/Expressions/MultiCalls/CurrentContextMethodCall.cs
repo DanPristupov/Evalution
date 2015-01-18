@@ -1,9 +1,9 @@
-namespace EvalutionCS.Ast
+namespace Evalution.Ast
 {
     using System;
     using System.Collections.Generic;
     using System.Reflection;
-    using Sigil.NonGeneric;
+    using System.Reflection.Emit;
 
     public class CurrentContextMethodCall : Multicall
     {
@@ -16,45 +16,28 @@ namespace EvalutionCS.Ast
         public string Identifier { get; set; }
         public List<Expression> Arguments { get; set; }
 
-        public override bool Equals(object obj)
-        {
-            if (obj is CurrentContextMethodCall)
-            {
-                var typedObj = obj as CurrentContextMethodCall;
-                for (var i = 0; i < Arguments.Count; i++)
-                {
-                    if (!Arguments[i].Equals(typedObj.Arguments[i]))
-                    {
-                        return false;
-                    }
-                }
-                return typedObj.Identifier.Equals(Identifier);
-            }
-            return false;
-        }
-
-        public override Type BuildBody(Emit emitter, Context ctx)
+        public override Type BuildBody(ILGenerator il, Context ctx)
         {
             var result = GetDefaultContextMethod(ctx);
             var method = result.Item2;
             var target = result.Item1;
             if (target == ctx.TargetType)
             {
-                emitter.LoadArgument((UInt16)0);
+                il.Emit(OpCodes.Ldarg_0);
                 foreach (var expression in Arguments)
                 {
-                    expression.BuildBody(emitter, ctx);
+                    expression.BuildBody(il, ctx);
                 }
-                emitter.CallVirtual(method);
+                il.Emit(OpCodes.Callvirt, method);
                 return method.ReturnType;
             }
             else
             {
                 foreach (var expression in Arguments)
                 {
-                    expression.BuildBody(emitter, ctx);
+                    expression.BuildBody(il, ctx);
                 }
-                emitter.Call(method);
+                il.Emit(OpCodes.Call, method);
                 return method.ReturnType;
             }
 
@@ -82,5 +65,24 @@ namespace EvalutionCS.Ast
             throw new InvalidNameException(Identifier);
         }
 
+        #region Equals
+
+        public override bool Equals(object obj)
+        {
+            if (obj is CurrentContextMethodCall)
+            {
+                var typedObj = obj as CurrentContextMethodCall;
+                for (var i = 0; i < Arguments.Count; i++)
+                {
+                    if (!Arguments[i].Equals(typedObj.Arguments[i]))
+                    {
+                        return false;
+                    }
+                }
+                return typedObj.Identifier.Equals(Identifier);
+            }
+            return false;
+        }
+        #endregion
     }
 }

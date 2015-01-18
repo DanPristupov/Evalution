@@ -1,7 +1,7 @@
-namespace EvalutionCS.Ast
+namespace Evalution.Ast
 {
     using System;
-    using Sigil.NonGeneric;
+    using System.Reflection.Emit;
 
     public class UnaryExpression : Expression
     {
@@ -14,29 +14,19 @@ namespace EvalutionCS.Ast
         public UnaryOperator UnaryOperator { get; set; }
         public Expression Expression { get; set; }
 
-        public override bool Equals(object obj)
-        {
-            if (obj is UnaryExpression)
-            {
-                var typedObj = obj as UnaryExpression;
-                return typedObj.UnaryOperator.Equals(UnaryOperator)
-                       && typedObj.Expression.Equals(Expression);
-            }
-            return false;
-        }
-
-        public override void BuildBody(Emit emitter, Context ctx)
+        public override void BuildBody(ILGenerator li, Context ctx)
         {
             if (UnaryOperator == UnaryOperator.Negate)
             {
-                Expression.BuildBody(emitter, ctx);
-                emitter.Negate();
+                Expression.BuildBody(li, ctx);
+                li.Emit(OpCodes.Neg);
+
                 return;
             }
             if (UnaryOperator == UnaryOperator.Identity)
             {
                 // We do not need to do anything here.
-                Expression.BuildBody(emitter, ctx);
+                Expression.BuildBody(li, ctx);
                 return;
             }
             if (UnaryOperator == UnaryOperator.LogicalNegate)
@@ -50,5 +40,19 @@ namespace EvalutionCS.Ast
         {
             return Expression.GetExpressionType(ctx);
         }
+
+        #region Equals
+        public override bool Equals(object obj)
+        {
+            if (obj is UnaryExpression)
+            {
+                var typedObj = obj as UnaryExpression;
+                return typedObj.UnaryOperator.Equals(UnaryOperator)
+                       && typedObj.Expression.Equals(Expression);
+            }
+            return false;
+        }
+        #endregion
+
     }
 }

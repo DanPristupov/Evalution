@@ -1,8 +1,8 @@
-namespace EvalutionCS.Ast
+namespace Evalution.Ast
 {
     using System;
     using System.Collections.Generic;
-    using Sigil.NonGeneric;
+    using System.Reflection.Emit;
 
     public class ObjectContextMethodCall : Multicall
     {
@@ -17,6 +17,35 @@ namespace EvalutionCS.Ast
         public string Identifier { get; set; }
         public List<Expression> Arguments { get; set; }
 
+        public override Type BuildBody(ILGenerator il, Context ctx)
+        {
+            var subPropertyType = Multicall.BuildBody(il, ctx);
+            if (subPropertyType.IsValueType && !subPropertyType.IsPrimitive)
+            {
+                var local = il.DeclareLocal(subPropertyType);
+                il.Emit(OpCodes.Stloc, local.LocalIndex);
+                il.Emit(OpCodes.Ldloca_S, local.LocalIndex);
+            }
+
+            foreach (var expression in Arguments)
+            {
+                expression.BuildBody(il, ctx);
+            }
+
+            var method = ctx.TypeCache.GetTypeMethod(subPropertyType, Identifier);
+
+            il.Emit(OpCodes.Callvirt, method);
+
+            return method.ReturnType;
+        }
+
+        public override Type GetExpressionType(Context ctx)
+        {
+            var subPropertyType = Multicall.GetExpressionType(ctx);
+            return ctx.TypeCache.GetTypeMethod(subPropertyType, Identifier).ReturnType;
+        }
+
+        #region Equals
         public override bool Equals(object obj)
         {
             if (obj is ObjectContextMethodCall)
@@ -35,30 +64,6 @@ namespace EvalutionCS.Ast
             return false;
         }
 
-        public override Type BuildBody(Emit emitter, Context ctx)
-        {
-            var subPropertyType = Multicall.BuildBody(emitter, ctx);
-            if (subPropertyType.IsValueType && !subPropertyType.IsPrimitive)
-            {
-                emitter.DeclareLocal(subPropertyType, "value1");
-                emitter.StoreLocal("value1");
-                emitter.LoadLocalAddress("value1");
-            }
-            foreach (var expression in Arguments)
-            {
-                expression.BuildBody(emitter, ctx);
-            }
-
-            var method = ctx.TypeCache.GetTypeMethod(subPropertyType, Identifier);
-
-            emitter.CallVirtual(method);
-            return method.ReturnType;
-        }
-
-        public override Type GetExpressionType(Context ctx)
-        {
-            var subPropertyType = Multicall.GetExpressionType(ctx);
-            return ctx.TypeCache.GetTypeMethod(subPropertyType, Identifier).ReturnType;
-        }
+        #endregion
     }
 }
