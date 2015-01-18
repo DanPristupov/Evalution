@@ -38,18 +38,22 @@ namespace Evalution.Tests
             Assert.AreEqual(12, dependentValue2Value);
         }
 
-        [Test]
-        public void GeneralTest_RuntimeAutoProperties()
+        [TestCase(typeof(int), 12)]
+        [TestCase(typeof(double), 13.3)]
+        [TestCase(typeof(string), "abc")]
+        [TestCase(typeof(bool), true)]
+        public void GeneralTest_RuntimeAutoProperties(Type propertyType, object value)
         {
             var classBuilder = new ClassBuilder(typeof(object))
-                .SetupRuntime("AutoProperty", typeof (double))
+                .SetupRuntime("AutoProperty", propertyType)
                 ;
             var target = (object)classBuilder.BuildObject();
-            var type = target.GetType();
 
-            type.GetProperty("AutoProperty").SetValue(target, 12.0, null);
-            var result = type.GetProperty("AutoProperty").GetValue(target, null);
-            Assert.AreEqual(12.0, result);
+            var resultType = target.GetType();
+            resultType.GetProperty("AutoProperty").SetValue(target, value, null);
+
+            var result = resultType.GetProperty("AutoProperty").GetValue(target, null);
+            Assert.AreEqual(value, result);
         }
 
         [Test]

@@ -47,20 +47,17 @@ namespace Evalution
 
         public static MethodBuilder DefineVirtualGetMethod(TypeBuilder typeBuilder, string propertyName, Type propertyType)
         {
-            return DefineVirtualMethod(typeBuilder, "get_" + propertyName, propertyType);
+            var methodBuilder = typeBuilder.DefineMethod("get_" + propertyName,
+                MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig |
+                MethodAttributes.Virtual, CallingConventions.Standard | CallingConventions.HasThis,
+                propertyType, Type.EmptyTypes );
+            return methodBuilder;
         }
 
         public static MethodBuilder DefineVirtualSetMethod(TypeBuilder typeBuilder, string propertyName, Type propertyType)
         {
-            return DefineVirtualMethod(typeBuilder, "set_" + propertyName, propertyType);
-        }
-
-        public static MethodBuilder DefineVirtualMethod(TypeBuilder typeBuilder, string propertyName, Type propertyType)
-        {
-            var methodBuilder = typeBuilder.DefineMethod(propertyName,
-                MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig |
-                MethodAttributes.Virtual, CallingConventions.Standard | CallingConventions.HasThis,
-                propertyType, new[] {propertyType});
+            var methodBuilder = typeBuilder.DefineMethod("set_" + propertyName,
+                MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig, null, new[] { propertyType });
             return methodBuilder;
         }
 
