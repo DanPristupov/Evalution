@@ -50,15 +50,17 @@
         {
             var typeBuilder = CreateTypeBuilder(_targetType);
 
-            var objectProperties = DefineProperties(typeBuilder);
+            var objectProperties = DefineProperties(typeBuilder).ToArray();
 
             var ctx = new Context(_typeCache, _targetType, ObjectContexts, objectProperties);
 
             foreach (var property in ctx.ObjectProperties)
             {
-                BuildProperty(property.MethodInfo as MethodBuilder,
-                    property.PropertyInfo as PropertyBuilder,
+                BuildProperty(typeBuilder,
+                    property.GetMethodBuilder as MethodBuilder,
+                    property.PropertyBuilder as PropertyBuilder,
                     property.PropertyDefinition,
+                    property,
                     ctx);
             }
             return typeBuilder.CreateType();
@@ -66,33 +68,54 @@
 
         private IEnumerable<Property> DefineProperties(TypeBuilder typeBuilder)
         {
-            return _propertyDefinitions
-                .Select(propertyDefinition => DefineProperty(typeBuilder, propertyDefinition))
-                .ToList();
+            foreach (var propertyDefinition in _propertyDefinitions)
+            {
+                var property = DefineProperty(typeBuilder, propertyDefinition);
+                yield return property;
+            }
         }
 
-        private void BuildProperty(MethodBuilder methodBuilder, PropertyBuilder propertyBuilder, PropertyDefinition prop, Context ctx)
+        private void BuildProperty(TypeBuilder typeBuilder, MethodBuilder methodBuilder, PropertyBuilder propertyBuilder, PropertyDefinition prop, Property property, Context ctx)
         {
-            var ilGen = methodBuilder.GetILGenerator();
 
-            var expression = AstBuilder.Build(prop.Expression);
-            expression.BuildBody(ilGen, ctx);
-            ilGen.Emit(OpCodes.Ret);
-            var getMethodBuilder = methodBuilder;
-            propertyBuilder.SetGetMethod(getMethodBuilder);
+            if (!string.IsNullOrEmpty(prop.Expression))
+            {
+                var ilGen = property.GetMethodBuilder.GetILGenerator();
+                var expression = AstBuilder.Build(prop.Expression);
+                expression.BuildBody(ilGen, ctx);
+                ilGen.Emit(OpCodes.Ret);
+                property.PropertyBuilder.SetGetMethod(property.GetMethodBuilder);
+            }
+            else
+            {
+                EmitHelper.BuildAutoProperty(typeBuilder,
+                    property.PropertyBuilder,
+                    property.GetMethodBuilder,
+                    property.SetMethodBuilder);
+            }
         }
 
         private static Property DefineProperty(TypeBuilder typeBuilder, PropertyDefinition prop)
         {
-            var propertyBuilder = typeBuilder.DefineProperty(prop.PropertyName,
-                PropertyAttributes.HasDefault, prop.PropertyType, null);
+            var propertyBuilder = EmitHelper.DefineProperty(typeBuilder, prop.PropertyName, prop.PropertyType);
 
-            var methodBuilder = typeBuilder.DefineMethod("get_" + prop.PropertyName,
-                MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig |
-                MethodAttributes.Virtual, CallingConventions.Standard | CallingConventions.HasThis,
-                prop.PropertyType, new Type[0]);
-            return new Property(prop, propertyBuilder, methodBuilder);
+            if (!string.IsNullOrEmpty(prop.Expression))
+            {
+                // todo: why virtual? I don't want it to be virtual
+                var getMethodBuilder = EmitHelper.DefineVirtualGetMethod(typeBuilder, prop.PropertyName, prop.PropertyType);
+                return new Property(prop, propertyBuilder, getMethodBuilder);
+            }
+            else
+            {
+                // todo: remove virtual
+                var getMethodBuilder = EmitHelper.DefineVirtualGetMethod(typeBuilder, prop.PropertyName, prop.PropertyType);
+                var setMethodBuilder = EmitHelper.DefineVirtualSetMethod(typeBuilder, prop.PropertyName, prop.PropertyType);
+                return new Property(prop, propertyBuilder, getMethodBuilder, setMethodBuilder);
+            }
         }
+
+
+
 
         private IEnumerable<Type> ObjectContexts
         {
@@ -117,6 +140,7 @@
             return typeBuilder;
         }
 
+        // todo: rename to OverrideProperty?
         public ClassBuilder Setup(string property, string expression)
         {
             CheckResultTypeIsNotBuilt();
@@ -126,9 +150,17 @@
             return this;
         }
 
+        // todo: rename to DefineProperty?
         public ClassBuilder SetupRuntime(string propertyName, Type propertyType, string expression)
         {
             _propertyDefinitions.Add(new PropertyDefinition(propertyName, propertyType, expression));
+            return this;
+        }
+
+        // todo: rename to DefineProperty?
+        public ClassBuilder SetupRuntime(string propertyName, Type propertyType)
+        {
+            _propertyDefinitions.Add(new PropertyDefinition(propertyName, propertyType));
             return this;
         }
     }

@@ -37,21 +37,19 @@ namespace Evalution.Tests
             Assert.AreEqual(6, valueWithExpressionValue);
             Assert.AreEqual(12, dependentValue2Value);
         }
+
         [Test]
         public void GeneralTest_RuntimeAutoProperties()
         {
-//            var classBuilder = new ClassBuilder(typeof(object))
-//                .Setup("AutoProperty", typeof (double))
-//                ;
-//            var target = (object)classBuilder.BuildObject();
-//            var type = target.GetType();
-//            var ValueWithExpressionValue = type.GetProperty("ValueWithExpression").GetValue(target, null);
-//            var DependentValue2Value = type.GetProperty("DependentValue2").GetValue(target, null);
-//            var aa = 23;
-//            //            target.Value1 = 4;
-//            //            Assert.AreEqual(6, target.ValueWithExpression); // "2+2*2"
-//            //            Assert.AreEqual(8, target.DependentValue1);     // "Value1*2"
-//            //            Assert.AreEqual(16, target.DependentValue2);    // "DependentValue1*2"
+            var classBuilder = new ClassBuilder(typeof(object))
+                .SetupRuntime("AutoProperty", typeof (double))
+                ;
+            var target = (object)classBuilder.BuildObject();
+            var type = target.GetType();
+
+            type.GetProperty("AutoProperty").SetValue(target, 12.0, null);
+            var result = type.GetProperty("AutoProperty").GetValue(target, null);
+            Assert.AreEqual(12.0, result);
         }
 
         [Test]

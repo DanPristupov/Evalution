@@ -5,6 +5,7 @@ namespace Evalution.Ast
 {
     using Piglet.Parser;
 
+    // todo: don't safe parser configuration and create it only once
     public class AstBuilder
     {
         public static Expression Build(string input)

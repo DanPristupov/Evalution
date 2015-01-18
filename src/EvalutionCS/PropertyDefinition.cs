@@ -11,6 +11,11 @@
             Expression = expression;
         }
 
+        public PropertyDefinition(string propertyName, Type propertyType)
+            :this(propertyName, propertyType, null)
+        {
+        }
+
         public string PropertyName { get; set; }
         public Type PropertyType { get; set; }
 

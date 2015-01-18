@@ -45,5 +45,50 @@ namespace Evalution
             ilGen.Emit(OpCodes.Ret);
         }
 
+        public static MethodBuilder DefineVirtualGetMethod(TypeBuilder typeBuilder, string propertyName, Type propertyType)
+        {
+            return DefineVirtualMethod(typeBuilder, "get_" + propertyName, propertyType);
+        }
+
+        public static MethodBuilder DefineVirtualSetMethod(TypeBuilder typeBuilder, string propertyName, Type propertyType)
+        {
+            return DefineVirtualMethod(typeBuilder, "set_" + propertyName, propertyType);
+        }
+
+        public static MethodBuilder DefineVirtualMethod(TypeBuilder typeBuilder, string propertyName, Type propertyType)
+        {
+            var methodBuilder = typeBuilder.DefineMethod(propertyName,
+                MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig |
+                MethodAttributes.Virtual, CallingConventions.Standard | CallingConventions.HasThis,
+                propertyType, new[] {propertyType});
+            return methodBuilder;
+        }
+
+
+        public static PropertyBuilder DefineProperty(TypeBuilder typeBuilder, string propertyName, Type propertyType)
+        {
+            return typeBuilder.DefineProperty(propertyName, PropertyAttributes.HasDefault, propertyType, null);
+        }
+
+        public static void BuildAutoProperty(TypeBuilder typeBuilder, PropertyBuilder propertyBuilder, MethodBuilder getMethodBuilder, MethodBuilder setMethodBuilder)
+        {
+            // http://www.codeproject.com/Articles/121568/Dynamic-Type-Using-Reflection-Emit#heading0017
+            // todo: CreateField
+            var field = typeBuilder.DefineField("_" + propertyBuilder.Name, propertyBuilder.PropertyType, FieldAttributes.Private);
+
+            var getIlGen = getMethodBuilder.GetILGenerator();
+            getIlGen.Emit(OpCodes.Ldarg_0);
+            getIlGen.Emit(OpCodes.Ldfld, field);
+            getIlGen.Emit(OpCodes.Ret);
+
+            var setIlGen = setMethodBuilder.GetILGenerator();
+            setIlGen.Emit(OpCodes.Ldarg_0);
+            setIlGen.Emit(OpCodes.Ldarg_1);
+            setIlGen.Emit(OpCodes.Stfld, field);
+            setIlGen.Emit(OpCodes.Ret);
+
+            propertyBuilder.SetGetMethod(getMethodBuilder);
+            propertyBuilder.SetSetMethod(setMethodBuilder);
+        }
     }
 }

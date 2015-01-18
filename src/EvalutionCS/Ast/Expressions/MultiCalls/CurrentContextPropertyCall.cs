@@ -46,7 +46,7 @@ namespace Evalution.Ast
             var currentObjectProperty = ctx.ObjectProperties.FirstOrDefault(x => x.Name == Identifier);
             if (currentObjectProperty != null)
             {
-                return new Tuple<Type, MethodInfo>(null, currentObjectProperty.PropertyInfo.GetGetMethod());
+                return new Tuple<Type, MethodInfo>(null, currentObjectProperty.PropertyBuilder.GetGetMethod());
             }
             foreach (var objectContext in ctx.ObjectContexts)
             {
