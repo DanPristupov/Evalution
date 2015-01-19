@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
     <metadata>
         <id>Evalution</id>
-        <version>1.1.0</version>
+        <version>1.1.1</version>
         <title>Evalution</title>
         <authors>Dan Pristupov</authors>
         <owners>Dan Pristupov</owners>
@@ -19,6 +19,6 @@
         </dependencies>
     </metadata>
     <files>
-        <file src="lib\net40\Evalution.dll" target="lib\net40\Evalution.dll" />
+        <file src="..\output\Release\Evalution\Evalution.dll" target="lib\net40\Evalution.dll" />
     </files>
 </package>
