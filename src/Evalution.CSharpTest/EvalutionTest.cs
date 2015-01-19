@@ -38,6 +38,20 @@ namespace Evalution.Tests
             Assert.AreEqual(12, dependentValue2Value);
         }
 
+        [Test]
+        public void GeneralTest_RuntimeProperties_Targets()
+        {
+            var classBuilder = new ClassBuilder(typeof(object))
+                .SetupRuntime("Value1", typeof(int))
+                .SetupRuntime("Value2", typeof(int), "Value2*2")
+                ;
+            var target = (object)classBuilder.BuildObject();
+            var type = target.GetType();
+            type.GetProperty("Value1").SetValue(target, 10, null);
+            var value2 = type.GetProperty("Value2").GetValue(target, null);
+            Assert.AreEqual(20, value2);
+        }
+
         [TestCase(typeof(int), 12)]
         [TestCase(typeof(double), 13.3)]
         [TestCase(typeof(string), "abc")]
