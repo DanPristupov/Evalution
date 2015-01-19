@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+    <metadata>
+        <id>Evalution</id>
+        <version>1.1.0</version>
+        <title>Evalution</title>
+        <authors>Dan Pristupov</authors>
+        <owners>Dan Pristupov</owners>
+        <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>Calculation engine with code injecting for .Net</description>
+        <summary>Calculation engine with code injecting for .Net</summary>
+        <releaseNotes>Initial release.</releaseNotes>
+        <tags>evaluation calculation injection</tags>
+        <dependencies>
+            <group targetFramework=".NETFramework4.0">
+                <dependency id="Piglet" version="1.4.0" />
+            </group>
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="lib\net40\Evalution.dll" target="lib\net40\Evalution.dll" />
+    </files>
+</package>
